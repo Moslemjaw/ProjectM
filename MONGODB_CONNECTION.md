@@ -6,7 +6,7 @@
 mongodb+srv://musallamjaw:Musallamjaw123@cluster0.oh4suml.mongodb.net/projectM
 ```
 
-## Connection String Breakdown
+### Connection String Breakdown:
 
 - **Protocol:** `mongodb+srv://` (MongoDB Atlas connection)
 - **Username:** `musallamjaw`
@@ -14,79 +14,133 @@ mongodb+srv://musallamjaw:Musallamjaw123@cluster0.oh4suml.mongodb.net/projectM
 - **Cluster:** `cluster0.oh4suml.mongodb.net`
 - **Database:** `projectM`
 
-## ✅ Configuration Status
+## ✅ Configuration Checklist
 
-### In Render (Backend)
+### 1. Set in Render Environment Variables
 
-Make sure this environment variable is set in your Render dashboard:
+**In Render Dashboard:**
 
-**Environment Variable:**
+1. Go to your service → **Environment** tab
+2. Add/Update environment variable:
+   - **Key:** `MONGODB_URI`
+   - **Value:** `mongodb+srv://musallamjaw:Musallamjaw123@cluster0.oh4suml.mongodb.net/projectM`
+3. **Save** and **Redeploy**
+
+### 2. Verify MongoDB Atlas Network Access
+
+**In MongoDB Atlas:**
+
+1. Go to **Network Access** → **IP Access List**
+2. Add IP Address:
+   - **Option 1:** `0.0.0.0/0` (Allow all IPs - for Render)
+   - **Option 2:** Add Render's specific IPs (if known)
+3. **Confirm** the change
+
+### 3. Verify Database User Permissions
+
+**In MongoDB Atlas:**
+
+1. Go to **Database Access** → **Database Users**
+2. Verify user `musallamjaw` has:
+   - **Atlas Admin** role, OR
+   - **Read and write to any database** permissions
+
+### 4. Test Connection
+
+After setting the environment variable in Render, check the logs:
+
+**Expected Success Message:**
 
 ```
-MONGODB_URI=mongodb+srv://musallamjaw:Musallamjaw123@cluster0.oh4suml.mongodb.net/projectM
+✅ Connected to MongoDB
 ```
 
-**Steps to verify:**
+**If Connection Fails:**
 
-1. Go to Render Dashboard → Your Service → Environment
-2. Check if `MONGODB_URI` is set with the above value
-3. If not set, add it and redeploy
-
-### How It's Used
-
-The connection string is read by your app in `server/db.ts`:
-
-```typescript
-const MONGODB_URI = process.env.MONGODB_URI!;
-await mongoose.connect(MONGODB_URI, {
-  serverSelectionTimeoutMS: 5000,
-});
+```
+❌ MongoDB connection failed: [error message]
+⚠️  Please check your MongoDB connection settings
 ```
 
-## 🔒 Security Note
+## Database Name: `projectM`
 
-⚠️ **Important:** You've shared your MongoDB credentials publicly. Consider:
+**Important:** The database name in your connection string is `projectM` (capital M).
 
-1. **Change your MongoDB password** in MongoDB Atlas:
+MongoDB is case-sensitive, so make sure:
 
-   - Go to MongoDB Atlas → Database Access
-   - Edit the user `musallamjaw`
-   - Generate a new password
-   - Update `MONGODB_URI` in Render with the new password
+- Connection string uses: `projectM`
+- Collections will be created in the `projectM` database
 
-2. **Check MongoDB Atlas Network Access:**
-   - Go to MongoDB Atlas → Network Access
-   - Ensure `0.0.0.0/0` is allowed (or add Render's IP ranges)
-   - This allows Render to connect to your database
+## Verify Connection in Render
 
-## ✅ Verification
+### Check Render Logs:
 
-To verify the connection is working:
+1. Go to Render Dashboard → Your Service → **Logs**
+2. Look for: `✅ Connected to MongoDB`
+3. If you see connection errors, check:
+   - Environment variable is set correctly
+   - Network Access allows Render's IPs
+   - Username/password are correct
 
-1. **Check Render Logs:**
+### Test via API Endpoint:
 
-   - Look for: `✅ Connected to MongoDB`
-   - If you see: `❌ MongoDB connection failed` → Check Network Access settings
+After deployment, test the database connection:
 
-2. **Test the connection:**
-   - The app will automatically connect on startup
-   - Check Render logs after deployment
+```
+GET https://project-management-system-4phy.onrender.com/api/debug/db-status
+```
 
-## Database Collections
+**Expected Response:**
 
-Your database `projectM` should contain these collections:
+```json
+{
+  "mongodbConnected": true,
+  "mongodbUri": "Set (hidden for security)",
+  "userCount": 5,
+  "projectCount": 0,
+  ...
+}
+```
 
-- `users` - User accounts
-- `projects` - Research projects
-- `grades` - Reviewer grades
-- `reviewerassignments` - Reviewer assignments
-- `notifications` - User notifications
-- `activitylogs` - Activity logs
-- `fileuploads` - Uploaded files
+## Common Issues
+
+### Issue: "MongoDB connection failed"
+
+**Solutions:**
+
+1. ✅ Verify `MONGODB_URI` is set in Render
+2. ✅ Check MongoDB Atlas Network Access (allow `0.0.0.0/0`)
+3. ✅ Verify username/password are correct
+4. ✅ Ensure database user has proper permissions
+
+### Issue: "Authentication failed"
+
+**Solutions:**
+
+1. ✅ Check username/password in connection string
+2. ✅ Verify user exists in MongoDB Atlas
+3. ✅ Check user has database access permissions
+
+### Issue: "Network timeout"
+
+**Solutions:**
+
+1. ✅ Add `0.0.0.0/0` to Network Access (allows all IPs)
+2. ✅ Check MongoDB Atlas cluster is running
+3. ✅ Verify cluster URL is correct
+
+## Security Notes
+
+⚠️ **Important:**
+
+- Never commit the connection string to Git
+- Always use environment variables
+- The connection string contains your password - keep it secure
+- Consider using MongoDB Atlas IP whitelist for better security (after testing)
 
 ## Summary
 
-✅ **Connection String Format:** Correct  
+✅ **Connection String:** Provided and formatted correctly  
 ✅ **Database Name:** `projectM`  
-⚠️ **Action Needed:** Verify it's set in Render environment variables  
-🔒 **Security:** Consider changing password after sharing it publicly
+✅ **Next Step:** Set `MONGODB_URI` in Render environment variables  
+✅ **Verify:** Check Render logs for "✅ Connected to MongoDB"
