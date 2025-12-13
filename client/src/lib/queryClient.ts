@@ -3,8 +3,33 @@ import { buildApiUrl } from "./apiConfig";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    const contentType = res.headers.get("content-type") || "";
+    let errorMessage = res.statusText;
+
+    // Check if response is HTML (likely a 404 page or error page)
+    if (contentType.includes("text/html")) {
+      const text = await res.text();
+      // If we got HTML instead of JSON, the API endpoint probably doesn't exist
+      if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+        throw new Error(
+          `404: API endpoint not found. Check that VITE_API_URL is set correctly. ` +
+            `Received HTML instead of JSON from: ${res.url}`
+        );
+      }
+      errorMessage = text.substring(0, 100);
+    } else {
+      // Try to parse as JSON
+      try {
+        const text = await res.text();
+        const json = JSON.parse(text);
+        errorMessage = json.message || json.error || text;
+      } catch {
+        const text = await res.text();
+        errorMessage = text || res.statusText;
+      }
+    }
+
+    throw new Error(`${res.status}: ${errorMessage}`);
   }
 }
 

@@ -32,9 +32,20 @@ export const buildApiUrl = (path: string): string => {
     ? `${API_BASE_URL}/${cleanPath}`
     : `/${cleanPath}`;
 
-  // Log API URL in development for debugging
+  // Log API URL in development and production for debugging
   if (import.meta.env.DEV) {
     console.log(`[API] ${path} -> ${fullUrl}`);
+  } else {
+    // In production, log first few API calls to help debug
+    if (!(window as any).__apiUrlLogged) {
+      console.log(
+        `[API Config] Base URL: ${
+          API_BASE_URL || "NOT SET (using relative URLs)"
+        }`
+      );
+      console.log(`[API] Example: ${path} -> ${fullUrl}`);
+      (window as any).__apiUrlLogged = true;
+    }
   }
 
   return fullUrl;

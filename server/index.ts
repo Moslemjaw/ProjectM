@@ -13,20 +13,50 @@ const allowedOrigins = [
   "http://localhost:5000", // Local development
 ].filter(Boolean);
 
+// Also allow any Vercel preview/deployment URLs
+const isVercelOrigin = (origin: string): boolean => {
+  return (
+    origin.includes("vercel.app") ||
+    origin.includes("vercel-dash.com") ||
+    origin.includes("localhost")
+  );
+};
+
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-
-      if (
-        allowedOrigins.includes(origin) ||
-        process.env.NODE_ENV === "development"
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+      if (!origin) {
+        return callback(null, true);
       }
+
+      // Normalize origin (remove trailing slash)
+      const normalizedOrigin = origin.endsWith("/")
+        ? origin.slice(0, -1)
+        : origin;
+
+      // Check if origin is in allowed list
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+
+      // Allow any Vercel origin (for preview deployments)
+      if (isVercelOrigin(normalizedOrigin)) {
+        console.log(`[CORS] Allowing Vercel origin: ${normalizedOrigin}`);
+        return callback(null, true);
+      }
+
+      // Allow in development mode
+      if (process.env.NODE_ENV === "development") {
+        return callback(null, true);
+      }
+
+      // Log rejected origin for debugging
+      console.error(
+        `[CORS] Rejected origin: ${normalizedOrigin}. Allowed origins:`,
+        allowedOrigins
+      );
+      callback(new Error("Not allowed by CORS"));
     },
     credentials: true, // Allow cookies/sessions to be sent
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -75,8 +105,17 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
+    // Log CORS errors for debugging
+    if (message.includes("CORS")) {
+      console.error(`[CORS Error] ${message}`);
+      console.error(`[CORS Error] Origin: ${_req.headers.origin || "none"}`);
+    }
+
     res.status(status).json({ message });
-    throw err;
+    // Don't throw CORS errors - they're expected and handled
+    if (!message.includes("CORS")) {
+      throw err;
+    }
   });
 
   // importantly only setup vite in development and after
