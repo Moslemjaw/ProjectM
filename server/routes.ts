@@ -53,6 +53,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertUserSchema.parse(req.body);
 
+      // Ensure database connection before proceeding
+      const { connectDB } = await import("./db");
+      const isConnected = await connectDB();
+      if (!isConnected) {
+        console.error("Registration failed: MongoDB not connected");
+        return res.status(503).json({
+          message: "Database unavailable. Please try again later.",
+          error: "MongoDB connection failed",
+        });
+      }
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(validatedData.email);
       if (existingUser) {
@@ -97,12 +108,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Registration error:", error);
+
+      // Provide more detailed error information
       if (error instanceof z.ZodError) {
         return res
           .status(400)
           .json({ message: "Invalid input", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to register" });
+
+      // Check for MongoDB-specific errors
+      if (error instanceof Error) {
+        if (
+          error.message.includes("MongoServerError") ||
+          error.message.includes("MongoNetworkError")
+        ) {
+          console.error("MongoDB error during registration:", error.message);
+          return res.status(503).json({
+            message: "Database error. Please try again later.",
+            error: "Database connection issue",
+          });
+        }
+
+        // Log the full error for debugging
+        console.error("Full registration error:", {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+        });
+      }
+
+      res.status(500).json({
+        message: "Failed to register",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   });
 
