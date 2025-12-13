@@ -89,8 +89,8 @@ export function Navbar() {
       // Clear user data from cache
       queryClient.setQueryData(["/api/auth/user"], null);
 
-      // Redirect to login page
-      window.location.href = "/login";
+      // Redirect to home page
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
       const errorMessage =
