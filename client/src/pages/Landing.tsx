@@ -13,6 +13,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useLocation } from "wouter";
 import { AASULogo, AASUFullLogo } from "@/components/AASULogo";
 
 const navyBlue = "#0e1c43";
@@ -183,6 +184,8 @@ function Triangle({
 }
 
 export default function Landing() {
+  const [, setLocation] = useLocation();
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -506,8 +509,12 @@ export default function Landing() {
             initial={{ x: 20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
           >
-            <Button asChild data-testid="button-login" className="shadow-md">
-              <a href="/login">Log In</a>
+            <Button
+              data-testid="button-login"
+              className="shadow-md"
+              onClick={() => setLocation("/login")}
+            >
+              Log In
             </Button>
           </motion.div>
         </div>
@@ -572,14 +579,12 @@ export default function Landing() {
           >
             <Button
               size="lg"
-              asChild
               data-testid="button-get-started"
               className="shadow-lg group"
+              onClick={() => setLocation("/login")}
             >
-              <a href="/login">
-                Get Started
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </a>
+              Get Started
+              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button
               size="lg"
