@@ -3,7 +3,7 @@
 ## Your Connection String
 
 ```
-mongodb+srv://musallamjaw:Musallamjaw123@cluster0.oh4suml.mongodb.net/projectM
+mongodb+srv://musallamjaw:Musallamjaw123@cluster0.aut2oyc.mongodb.net/projectM
 ```
 
 ### Connection String Breakdown:
@@ -11,7 +11,7 @@ mongodb+srv://musallamjaw:Musallamjaw123@cluster0.oh4suml.mongodb.net/projectM
 - **Protocol:** `mongodb+srv://` (MongoDB Atlas connection)
 - **Username:** `musallamjaw`
 - **Password:** `Musallamjaw123`
-- **Cluster:** `cluster0.oh4suml.mongodb.net`
+- **Cluster:** `cluster0.aut2oyc.mongodb.net` (NEW)
 - **Database:** `projectM`
 
 ## ✅ Configuration Checklist
@@ -23,7 +23,7 @@ mongodb+srv://musallamjaw:Musallamjaw123@cluster0.oh4suml.mongodb.net/projectM
 1. Go to your service → **Environment** tab
 2. Add/Update environment variable:
    - **Key:** `MONGODB_URI`
-   - **Value:** `mongodb+srv://musallamjaw:Musallamjaw123@cluster0.oh4suml.mongodb.net/projectM`
+   - **Value:** `mongodb+srv://musallamjaw:Musallamjaw123@cluster0.aut2oyc.mongodb.net/projectM`
 3. **Save** and **Redeploy**
 
 ### 2. Verify MongoDB Atlas Network Access
