@@ -1,7 +1,12 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { insertUserSchema, USER_ROLES, ACADEMIC_LEVELS } from "@shared/schema";
+import {
+  insertUserSchema,
+  USER_ROLES,
+  ACADEMIC_LEVELS,
+  COLLEGES,
+} from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -23,8 +28,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Loader2, UserPlus, ArrowLeft } from "lucide-react";
 
 const formSchema = insertUserSchema.extend({
@@ -46,17 +58,45 @@ export default function AddUser() {
       lastName: "",
       role: USER_ROLES.FACULTY,
       academicLevel: undefined,
-      college: "",
+      college: COLLEGES.COMPUTER_SYSTEMS_ENGINEERING,
+      program: "",
       specialty: "",
       department: "",
     },
   });
 
-  const selectedRole = form.watch("role");
-
   const createUserMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      return apiRequest("POST", "/api/users", data);
+      try {
+        const response = await apiRequest("POST", "/api/users", data);
+        return response.json();
+      } catch (error: any) {
+        console.error("User creation API error:", error);
+
+        // Provide more helpful error messages
+        if (
+          error.message?.includes("503") ||
+          error.message?.includes("Database")
+        ) {
+          throw new Error(
+            "Database unavailable. Please check MongoDB connection and try again later."
+          );
+        }
+        if (error.message?.includes("403")) {
+          throw new Error(
+            "You don't have permission to create users. Only editors can create users."
+          );
+        }
+        if (
+          error.message?.includes("400") ||
+          error.message?.includes("Email already")
+        ) {
+          throw new Error(
+            "Email already registered. Please use a different email address."
+          );
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
@@ -68,10 +108,12 @@ export default function AddUser() {
       form.reset();
       setLocation("/admin/users");
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
+      console.error("User creation error:", error);
       toast({
         title: "Failed to create user",
-        description: error.message,
+        description:
+          error.message || "Failed to create user. Please try again.",
         variant: "destructive",
       });
     },
@@ -94,7 +136,9 @@ export default function AddUser() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold">Add New User</h1>
-          <p className="text-muted-foreground">Create a new user account for the system</p>
+          <p className="text-muted-foreground">
+            Create a new user account for the system
+          </p>
         </div>
       </div>
 
@@ -119,9 +163,9 @@ export default function AddUser() {
                     <FormItem>
                       <FormLabel>First Name</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="John" 
-                          {...field} 
+                        <Input
+                          placeholder="John"
+                          {...field}
                           data-testid="input-first-name"
                         />
                       </FormControl>
@@ -137,9 +181,9 @@ export default function AddUser() {
                     <FormItem>
                       <FormLabel>Last Name</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="Doe" 
-                          {...field} 
+                        <Input
+                          placeholder="Doe"
+                          {...field}
                           data-testid="input-last-name"
                         />
                       </FormControl>
@@ -181,9 +225,7 @@ export default function AddUser() {
                           data-testid="input-password"
                         />
                       </FormControl>
-                      <FormDescription>
-                        Minimum 6 characters
-                      </FormDescription>
+                      <FormDescription>Minimum 6 characters</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -205,9 +247,15 @@ export default function AddUser() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value={USER_ROLES.FACULTY}>Faculty</SelectItem>
-                          <SelectItem value={USER_ROLES.REVIEWER}>Reviewer</SelectItem>
-                          <SelectItem value={USER_ROLES.EDITOR}>Editor</SelectItem>
+                          <SelectItem value={USER_ROLES.FACULTY}>
+                            Faculty
+                          </SelectItem>
+                          <SelectItem value={USER_ROLES.REVIEWER}>
+                            Reviewer
+                          </SelectItem>
+                          <SelectItem value={USER_ROLES.EDITOR}>
+                            Editor
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -215,54 +263,43 @@ export default function AddUser() {
                   )}
                 />
 
-                {selectedRole === USER_ROLES.FACULTY && (
-                  <FormField
-                    control={form.control}
-                    name="academicLevel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Academic Level</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger data-testid="select-academic-level">
-                              <SelectValue placeholder="Select academic level" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value={ACADEMIC_LEVELS.PROFESSOR}>Professor</SelectItem>
-                            <SelectItem value={ACADEMIC_LEVELS.ASSOCIATE_PROFESSOR}>
-                              Associate Professor
-                            </SelectItem>
-                            <SelectItem value={ACADEMIC_LEVELS.ASSISTANT_PROFESSOR}>
-                              Assistant Professor
-                            </SelectItem>
-                            <SelectItem value={ACADEMIC_LEVELS.LECTURER}>Lecturer</SelectItem>
-                            <SelectItem value={ACADEMIC_LEVELS.DOCTOR}>Doctor</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
                 <FormField
                   control={form.control}
-                  name="college"
+                  name="academicLevel"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>College</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Engineering"
-                          {...field}
-                          value={field.value || ""}
-                          data-testid="input-college"
-                        />
-                      </FormControl>
+                      <FormLabel>Academic Level (Optional)</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-testid="select-academic-level">
+                            <SelectValue placeholder="Select level" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value={ACADEMIC_LEVELS.LECTURER}>
+                            Lecturer
+                          </SelectItem>
+                          <SelectItem
+                            value={ACADEMIC_LEVELS.ASSISTANT_PROFESSOR}
+                          >
+                            Assistant Professor
+                          </SelectItem>
+                          <SelectItem
+                            value={ACADEMIC_LEVELS.ASSOCIATE_PROFESSOR}
+                          >
+                            Associate Professor
+                          </SelectItem>
+                          <SelectItem value={ACADEMIC_LEVELS.PROFESSOR}>
+                            Professor
+                          </SelectItem>
+                          <SelectItem value={ACADEMIC_LEVELS.DOCTOR}>
+                            Doctor
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -270,16 +307,97 @@ export default function AddUser() {
 
                 <FormField
                   control={form.control}
-                  name="specialty"
+                  name="college"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Specialty</FormLabel>
+                      <FormLabel>College</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-testid="select-college">
+                            <SelectValue placeholder="Select college" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem
+                            value={COLLEGES.BUSINESS_ENTREPRENEURSHIP}
+                          >
+                            Business & Entrepreneurship
+                          </SelectItem>
+                          <SelectItem
+                            value={COLLEGES.COMPUTER_SYSTEMS_ENGINEERING}
+                          >
+                            Computer and Systems Engineering
+                          </SelectItem>
+                          <SelectItem value={COLLEGES.ENGINEERING_ENERGY}>
+                            Engineering & Energy
+                          </SelectItem>
+                          <SelectItem value={COLLEGES.HEALTH_MEDICINE}>
+                            Health & Medicine
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="program"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Program</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g., Computer Science, Electrical Engineering"
+                        {...field}
+                        data-testid="input-program"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="specialty"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Specialty/Research Interest</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter at least 5 interests separated by commas (e.g., Machine Learning, AI, NLP, Computer Vision, Robotics)"
+                        {...field}
+                        data-testid="input-specialty"
+                        rows={3}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Minimum 5 research interests required, separated by commas
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="department"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Department (Optional)</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Computer Science"
+                          placeholder="Software Engineering"
                           {...field}
                           value={field.value || ""}
-                          data-testid="input-specialty"
+                          data-testid="input-department"
                         />
                       </FormControl>
                       <FormMessage />

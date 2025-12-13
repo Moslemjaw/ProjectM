@@ -482,7 +482,7 @@ export default function Landing() {
                 className="text-sm font-medium"
                 style={{ color: "#60c2ac" }}
               >
-                AI-Powered Research Management
+                Abdullah Al Salem University
               </span>
             </div>
           </motion.div>
