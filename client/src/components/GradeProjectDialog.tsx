@@ -73,13 +73,27 @@ interface GradeProjectDialogProps {
 // Helper function to download files from MongoDB
 const downloadFile = async (fileUrl: string, filename: string) => {
   try {
-    const response = await fetch(fileUrl, {
+    const { buildApiUrl } = await import("@/lib/apiConfig");
+    // If fileUrl is already a full URL, use it; otherwise build the API URL
+    const fullUrl = fileUrl.startsWith("http") ? fileUrl : buildApiUrl(fileUrl);
+
+    const response = await fetch(fullUrl, {
       method: "GET",
       credentials: "include",
     });
 
     if (!response.ok) {
-      throw new Error("Failed to download file");
+      const errorText = await response.text();
+      let errorMessage = "Failed to download file";
+
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        errorMessage = errorText || errorMessage;
+      }
+
+      throw new Error(errorMessage);
     }
 
     const blob = await response.blob();

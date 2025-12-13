@@ -332,16 +332,28 @@ export function ProjectDetailDialog({
 
   const handlePrintGrade = async (gradeId: string, reviewerName: string) => {
     try {
-      const response = await fetch(
-        `/api/projects/${project.id}/grades/${gradeId}/print`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
+      const { buildApiUrl } = await import("@/lib/apiConfig");
+      const apiUrl = buildApiUrl(
+        `/api/projects/${project.id}/grades/${gradeId}/print`
       );
 
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        credentials: "include",
+      });
+
       if (!response.ok) {
-        throw new Error("Failed to generate document");
+        const errorText = await response.text();
+        let errorMessage = "Failed to generate document";
+
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+
+        throw new Error(errorMessage);
       }
 
       const blob = await response.blob();
@@ -359,6 +371,7 @@ export function ProjectDetailDialog({
         description: "The evaluation form has been downloaded successfully.",
       });
     } catch (error: any) {
+      console.error("Error downloading PDF:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to generate document",

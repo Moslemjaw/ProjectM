@@ -20,38 +20,70 @@ interface GradeDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function GradeDetailsDialog({ grade, project, open, onOpenChange }: GradeDetailsDialogProps) {
+export function GradeDetailsDialog({
+  grade,
+  project,
+  open,
+  onOpenChange,
+}: GradeDetailsDialogProps) {
   const [downloading, setDownloading] = useState(false);
 
   const handlePrint = async () => {
     try {
       setDownloading(true);
-      const response = await fetch(`/api/projects/${project.id}/grades/${grade.id}/print`);
-      
+      const { buildApiUrl } = await import("@/lib/apiConfig");
+      const apiUrl = buildApiUrl(
+        `/api/projects/${project.id}/grades/${grade.id}/print`
+      );
+
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        credentials: "include",
+      });
+
       if (!response.ok) {
-        throw new Error('Failed to generate document');
+        const errorText = await response.text();
+        let errorMessage = "Failed to generate document";
+
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+
+        throw new Error(errorMessage);
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `Evaluation_${project.title}_${grade.reviewer.firstName}_${grade.reviewer.lastName}.pdf`;
+      a.download = `Evaluation_${project.title}_${
+        grade.reviewer?.firstName || ""
+      }_${grade.reviewer?.lastName || ""}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
-      console.error('Error downloading document:', error);
-      alert('Failed to download evaluation form');
+      console.error("Error downloading document:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to download evaluation form";
+      alert(errorMessage);
     } finally {
       setDownloading(false);
     }
   };
 
-  const criteria = grade.criteria || {} as any;
-  const criteriaComments = grade.criteriaComments || {} as any;
-  const totalScore = Object.values(criteria).reduce((sum: number, val) => sum + (Number(val) || 0), 0);
+  const criteria = grade.criteria || ({} as any);
+  const criteriaComments = grade.criteriaComments || ({} as any);
+  const totalScore = Object.values(criteria).reduce(
+    (sum: number, val) => sum + (Number(val) || 0),
+    0
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -59,7 +91,8 @@ export function GradeDetailsDialog({ grade, project, open, onOpenChange }: Grade
         <DialogHeader>
           <DialogTitle>Evaluation Details</DialogTitle>
           <DialogDescription>
-            Review evaluation by {grade.reviewer.firstName} {grade.reviewer.lastName}
+            Review evaluation by {grade.reviewer.firstName}{" "}
+            {grade.reviewer.lastName}
           </DialogDescription>
         </DialogHeader>
 
@@ -72,11 +105,15 @@ export function GradeDetailsDialog({ grade, project, open, onOpenChange }: Grade
             <CardContent className="space-y-2">
               <div>
                 <span className="text-sm font-medium">Project ID:</span>
-                <span className="text-sm text-muted-foreground ml-2">{project.id}</span>
+                <span className="text-sm text-muted-foreground ml-2">
+                  {project.id}
+                </span>
               </div>
               <div>
                 <span className="text-sm font-medium">Title:</span>
-                <span className="text-sm text-muted-foreground ml-2">{project.title}</span>
+                <span className="text-sm text-muted-foreground ml-2">
+                  {project.title}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -96,30 +133,40 @@ export function GradeDetailsDialog({ grade, project, open, onOpenChange }: Grade
                 </div>
                 <div>
                   <span className="font-medium">Email:</span>
-                  <span className="ml-2 text-muted-foreground">{grade.reviewer.email}</span>
+                  <span className="ml-2 text-muted-foreground">
+                    {grade.reviewer.email}
+                  </span>
                 </div>
                 {grade.reviewer.designation && (
                   <div>
                     <span className="font-medium">Designation:</span>
-                    <span className="ml-2 text-muted-foreground">{grade.reviewer.designation}</span>
+                    <span className="ml-2 text-muted-foreground">
+                      {grade.reviewer.designation}
+                    </span>
                   </div>
                 )}
                 {grade.reviewer.organization && (
                   <div>
                     <span className="font-medium">Organization:</span>
-                    <span className="ml-2 text-muted-foreground">{grade.reviewer.organization}</span>
+                    <span className="ml-2 text-muted-foreground">
+                      {grade.reviewer.organization}
+                    </span>
                   </div>
                 )}
                 {grade.reviewer.discipline && (
                   <div>
                     <span className="font-medium">Discipline:</span>
-                    <span className="ml-2 text-muted-foreground">{grade.reviewer.discipline}</span>
+                    <span className="ml-2 text-muted-foreground">
+                      {grade.reviewer.discipline}
+                    </span>
                   </div>
                 )}
                 {grade.reviewer.phone && (
                   <div>
                     <span className="font-medium">Phone:</span>
-                    <span className="ml-2 text-muted-foreground">{grade.reviewer.phone}</span>
+                    <span className="ml-2 text-muted-foreground">
+                      {grade.reviewer.phone}
+                    </span>
                   </div>
                 )}
               </div>
@@ -135,11 +182,16 @@ export function GradeDetailsDialog({ grade, project, open, onOpenChange }: Grade
               {/* Criterion 1 */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold">1. Background/Introduction Section</h4>
-                  <Badge variant="secondary">{criteria.backgroundIntroduction || 0}/10</Badge>
+                  <h4 className="text-sm font-semibold">
+                    1. Background/Introduction Section
+                  </h4>
+                  <Badge variant="secondary">
+                    {criteria.backgroundIntroduction || 0}/10
+                  </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {criteriaComments.backgroundIntroduction || "No comments provided"}
+                  {criteriaComments.backgroundIntroduction ||
+                    "No comments provided"}
                 </p>
               </div>
 
@@ -148,11 +200,16 @@ export function GradeDetailsDialog({ grade, project, open, onOpenChange }: Grade
               {/* Criterion 2 */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold">2. Novelty and Originality</h4>
-                  <Badge variant="secondary">{criteria.noveltyOriginality || 0}/10</Badge>
+                  <h4 className="text-sm font-semibold">
+                    2. Novelty and Originality
+                  </h4>
+                  <Badge variant="secondary">
+                    {criteria.noveltyOriginality || 0}/10
+                  </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {criteriaComments.noveltyOriginality || "No comments provided"}
+                  {criteriaComments.noveltyOriginality ||
+                    "No comments provided"}
                 </p>
               </div>
 
@@ -161,11 +218,16 @@ export function GradeDetailsDialog({ grade, project, open, onOpenChange }: Grade
               {/* Criterion 3 */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold">3. Clear and Realistic Objectives</h4>
-                  <Badge variant="secondary">{criteria.clearRealisticObjectives || 0}/10</Badge>
+                  <h4 className="text-sm font-semibold">
+                    3. Clear and Realistic Objectives
+                  </h4>
+                  <Badge variant="secondary">
+                    {criteria.clearRealisticObjectives || 0}/10
+                  </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {criteriaComments.clearRealisticObjectives || "No comments provided"}
+                  {criteriaComments.clearRealisticObjectives ||
+                    "No comments provided"}
                 </p>
               </div>
 
@@ -174,11 +236,16 @@ export function GradeDetailsDialog({ grade, project, open, onOpenChange }: Grade
               {/* Criterion 4 */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold">4. Dissemination of Research Results</h4>
-                  <Badge variant="secondary">{criteria.disseminationResults || 0}/10</Badge>
+                  <h4 className="text-sm font-semibold">
+                    4. Dissemination of Research Results
+                  </h4>
+                  <Badge variant="secondary">
+                    {criteria.disseminationResults || 0}/10
+                  </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {criteriaComments.disseminationResults || "No comments provided"}
+                  {criteriaComments.disseminationResults ||
+                    "No comments provided"}
                 </p>
               </div>
 
@@ -187,8 +254,12 @@ export function GradeDetailsDialog({ grade, project, open, onOpenChange }: Grade
               {/* Criterion 5 */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold">5. Significance of the Research</h4>
-                  <Badge variant="secondary">{criteria.significance || 0}/10</Badge>
+                  <h4 className="text-sm font-semibold">
+                    5. Significance of the Research
+                  </h4>
+                  <Badge variant="secondary">
+                    {criteria.significance || 0}/10
+                  </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {criteriaComments.significance || "No comments provided"}
@@ -200,11 +271,16 @@ export function GradeDetailsDialog({ grade, project, open, onOpenChange }: Grade
               {/* Criterion 6 */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold">6. Feasibility and Planning</h4>
-                  <Badge variant="secondary">{criteria.feasibilityPlanning || 0}/10</Badge>
+                  <h4 className="text-sm font-semibold">
+                    6. Feasibility and Planning
+                  </h4>
+                  <Badge variant="secondary">
+                    {criteria.feasibilityPlanning || 0}/10
+                  </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {criteriaComments.feasibilityPlanning || "No comments provided"}
+                  {criteriaComments.feasibilityPlanning ||
+                    "No comments provided"}
                 </p>
               </div>
 
@@ -254,9 +330,9 @@ export function GradeDetailsDialog({ grade, project, open, onOpenChange }: Grade
               </CardHeader>
               <CardContent>
                 <div className="border rounded-md p-4 bg-muted/20">
-                  <img 
-                    src={grade.signature} 
-                    alt="Reviewer signature" 
+                  <img
+                    src={grade.signature}
+                    alt="Reviewer signature"
                     className="max-w-md h-auto"
                   />
                 </div>
