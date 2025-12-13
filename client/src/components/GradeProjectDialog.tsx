@@ -71,45 +71,79 @@ interface GradeProjectDialogProps {
 }
 
 // Helper function to download files from MongoDB
-const downloadFile = async (fileUrl: string, filename: string) => {
-  try {
-    const { buildApiUrl } = await import("@/lib/apiConfig");
-    // If fileUrl is already a full URL, use it; otherwise build the API URL
-    const fullUrl = fileUrl.startsWith("http") ? fileUrl : buildApiUrl(fileUrl);
+// This will be used inside the component to access toast
+const createDownloadFileHandler =
+  (toast: any) => async (fileUrl: string, filename: string) => {
+    try {
+      const { buildApiUrl } = await import("@/lib/apiConfig");
+      // Ensure fileUrl uses the correct API base URL
+      // File URLs are stored as /api/files/{fileId}
+      const fullUrl = fileUrl.startsWith("http")
+        ? fileUrl
+        : buildApiUrl(fileUrl);
 
-    const response = await fetch(fullUrl, {
-      method: "GET",
-      credentials: "include",
-    });
+      console.log(`[Download] Attempting to download: ${fullUrl}`);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      let errorMessage = "Failed to download file";
+      const response = await fetch(fullUrl, {
+        method: "GET",
+        credentials: "include",
+      });
 
-      try {
-        const errorData = JSON.parse(errorText);
-        errorMessage = errorData.message || errorMessage;
-      } catch {
-        errorMessage = errorText || errorMessage;
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = "Failed to download file";
+
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          // If not JSON, check if it's HTML (e.g., 404 page)
+          if (errorText.startsWith("<!DOCTYPE html>")) {
+            errorMessage =
+              "Backend API returned an HTML page instead of the file. This usually means the file endpoint was not found (404) or the backend service is not running correctly.";
+          } else {
+            errorMessage = errorText || errorMessage;
+          }
+        }
+
+        throw new Error(errorMessage);
       }
 
-      throw new Error(errorMessage);
-    }
+      // Check if response is actually a file (PDF, image, etc.)
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        // If we got JSON instead of a file, it's likely an error
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Server returned an error instead of the file"
+        );
+      }
 
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error("Error downloading file:", error);
-    throw error;
-  }
-};
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "File Downloaded",
+        description: `${filename} has been downloaded successfully.`,
+      });
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to download file";
+      toast({
+        title: "Download Failed",
+        description: `Failed to download ${filename}: ${errorMessage}`,
+        variant: "destructive",
+      });
+    }
+  };
 
 export function GradeProjectDialog({
   project,
@@ -117,6 +151,8 @@ export function GradeProjectDialog({
   onOpenChange,
 }: GradeProjectDialogProps) {
   const { toast } = useToast();
+  // Create download handler with toast access
+  const downloadFile = createDownloadFileHandler(toast);
   const { user } = useAuth();
   const signatureRef = useRef<SignatureCanvas>(null);
   const [, setLocation] = useLocation();
@@ -459,10 +495,19 @@ export function GradeProjectDialog({
                           {project.fileUrls.map((fileUrl, idx) => (
                             <button
                               key={idx}
-                              onClick={() =>
-                                downloadFile(fileUrl, `Proposal_${idx + 1}.pdf`)
-                              }
-                              className="flex items-center gap-2 p-2 border rounded-md hover-elevate active-elevate-2 text-sm w-full"
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                try {
+                                  await downloadFile(
+                                    fileUrl,
+                                    `Proposal_${idx + 1}.pdf`
+                                  );
+                                } catch (error) {
+                                  console.error("Download error:", error);
+                                }
+                              }}
+                              className="flex items-center gap-2 p-2 border rounded-md hover-elevate active-elevate-2 text-sm w-full cursor-pointer"
                               data-testid={`button-download-proposal-${idx}`}
                             >
                               <FileText className="h-4 w-4 text-muted-foreground" />
@@ -483,17 +528,23 @@ export function GradeProjectDialog({
                             {project.researchFormUrls.map((fileUrl, idx) => (
                               <button
                                 key={idx}
-                                onClick={() =>
-                                  downloadFile(
-                                    fileUrl,
-                                    `ResearchForm_${idx + 1}.pdf`
-                                  )
-                                }
-                                className="flex items-center gap-2 p-2 border rounded-md hover-elevate active-elevate-2 text-sm w-full"
+                                onClick={async (e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  try {
+                                    await downloadFile(
+                                      fileUrl,
+                                      `ResearchForm_${idx + 1}.pdf`
+                                    );
+                                  } catch (error) {
+                                    console.error("Download error:", error);
+                                  }
+                                }}
+                                className="flex items-center gap-2 p-2 border rounded-md hover-elevate active-elevate-2 text-sm w-full cursor-pointer"
                                 data-testid={`button-download-form-${idx}`}
                               >
                                 <FileText className="h-4 w-4 text-muted-foreground" />
-                                <span>ResearchForm_{idx + 1}.pdf</span>
+                                <span>ResearchForm_${idx + 1}.pdf</span>
                                 <Download className="h-3 w-3 ml-auto" />
                               </button>
                             ))}
