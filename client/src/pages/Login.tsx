@@ -2,7 +2,13 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,23 +23,35 @@ export default function Login() {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
-      const res = await apiRequest("POST", "/api/login", credentials);
-      return res.json();
+      try {
+        const res = await apiRequest("POST", "/api/login", credentials);
+        return res.json();
+      } catch (error: any) {
+        console.error("Login API error:", error);
+        // Provide more helpful error messages
+        if (error.message?.includes("404")) {
+          throw new Error(
+            "Backend API not found. Please check that VITE_API_URL is set in Vercel environment variables."
+          );
+        }
+        throw error;
+      }
     },
     onSuccess: async (data) => {
       // Set the user data in the cache immediately
       queryClient.setQueryData(["/api/auth/user"], data.user);
-      
+
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
-      
+
       // Small delay to ensure state updates propagate
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       setLocation("/");
     },
     onError: (error: any) => {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error.message || "Invalid email or password",

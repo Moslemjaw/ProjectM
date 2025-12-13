@@ -9,7 +9,17 @@ const getApiBaseUrl = (): string => {
 
   // In production, use the backend API URL from environment variable
   // Fallback to relative URL if not set (for same-origin deployments)
-  return import.meta.env.VITE_API_URL || "";
+  const apiUrl = import.meta.env.VITE_API_URL || "";
+
+  // Log warning in console if API URL is not set in production
+  if (!apiUrl && !import.meta.env.DEV) {
+    console.warn(
+      "⚠️ VITE_API_URL is not set! API calls will fail. " +
+        "Set VITE_API_URL=https://project-management-system-4phy.onrender.com in Vercel environment variables."
+    );
+  }
+
+  return apiUrl;
 };
 
 export const API_BASE_URL = getApiBaseUrl();
@@ -18,5 +28,14 @@ export const API_BASE_URL = getApiBaseUrl();
 export const buildApiUrl = (path: string): string => {
   // Remove leading slash if present to avoid double slashes
   const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-  return API_BASE_URL ? `${API_BASE_URL}/${cleanPath}` : `/${cleanPath}`;
+  const fullUrl = API_BASE_URL
+    ? `${API_BASE_URL}/${cleanPath}`
+    : `/${cleanPath}`;
+
+  // Log API URL in development for debugging
+  if (import.meta.env.DEV) {
+    console.log(`[API] ${path} -> ${fullUrl}`);
+  }
+
+  return fullUrl;
 };
