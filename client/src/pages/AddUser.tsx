@@ -385,45 +385,24 @@ export default function AddUser() {
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="department"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Department (Optional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Software Engineering"
-                          {...field}
-                          value={field.value || ""}
-                          data-testid="input-department"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="department"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Department</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Software Engineering"
-                          {...field}
-                          value={field.value || ""}
-                          data-testid="input-department"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="department"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Department (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Software Engineering"
+                        {...field}
+                        value={field.value || ""}
+                        data-testid="input-department"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="flex items-center gap-3 pt-4">
                 <Button
