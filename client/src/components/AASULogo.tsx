@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import aasuLogoImage from "@assets/image_1765622158503.png";
+// Use the favicon as the logo
+const aasuLogoImage = "/favicon.png";
 
 interface AASULogoProps {
   size?: "sm" | "md" | "lg" | "xl";
@@ -7,12 +8,16 @@ interface AASULogoProps {
   className?: string;
 }
 
-export function AASULogo({ size = "md", animated = true, className = "" }: AASULogoProps) {
+export function AASULogo({
+  size = "md",
+  animated = true,
+  className = "",
+}: AASULogoProps) {
   const sizeMap = {
     sm: { container: "w-10 h-10", text: "text-xs" },
     md: { container: "w-16 h-16", text: "text-sm" },
     lg: { container: "w-24 h-24", text: "text-base" },
-    xl: { container: "w-32 h-32", text: "text-lg" }
+    xl: { container: "w-32 h-32", text: "text-lg" },
   };
 
   const { container } = sizeMap[size];
@@ -25,9 +30,9 @@ export function AASULogo({ size = "md", animated = true, className = "" }: AASUL
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        <img 
-          src={aasuLogoImage} 
-          alt="AASU Logo" 
+        <img
+          src={aasuLogoImage}
+          alt="AASU Logo"
           className="w-full h-full object-contain"
         />
       </motion.div>
@@ -36,23 +41,29 @@ export function AASULogo({ size = "md", animated = true, className = "" }: AASUL
 
   return (
     <div className={`${container} ${className}`}>
-      <img 
-        src={aasuLogoImage} 
-        alt="AASU Logo" 
+      <img
+        src={aasuLogoImage}
+        alt="AASU Logo"
         className="w-full h-full object-contain"
       />
     </div>
   );
 }
 
-export function AASULogoText({ animated = true, className = "" }: { animated?: boolean; className?: string }) {
+export function AASULogoText({
+  animated = true,
+  className = "",
+}: {
+  animated?: boolean;
+  className?: string;
+}) {
   const letterVariants = {
     hidden: { y: 20, opacity: 0 },
     visible: (i: number) => ({
       y: 0,
       opacity: 1,
-      transition: { delay: i * 0.1, duration: 0.5, ease: "easeOut" }
-    })
+      transition: { delay: i * 0.1, duration: 0.5, ease: "easeOut" },
+    }),
   };
 
   const letters = "AASU".split("");
@@ -68,10 +79,11 @@ export function AASULogoText({ animated = true, className = "" }: { animated?: b
           animate={animated ? "visible" : undefined}
           className="text-4xl font-bold"
           style={{
-            background: "linear-gradient(135deg, #0e1c43 0%, #60c2ac 50%, #fbb216 100%)",
+            background:
+              "linear-gradient(135deg, #0e1c43 0%, #60c2ac 50%, #fbb216 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
-            backgroundClip: "text"
+            backgroundClip: "text",
           }}
         >
           {letter}
@@ -81,7 +93,13 @@ export function AASULogoText({ animated = true, className = "" }: { animated?: b
   );
 }
 
-export function AASUFullLogo({ animated = true, className = "" }: { animated?: boolean; className?: string }) {
+export function AASUFullLogo({
+  animated = true,
+  className = "",
+}: {
+  animated?: boolean;
+  className?: string;
+}) {
   if (animated) {
     return (
       <motion.div
@@ -90,9 +108,9 @@ export function AASUFullLogo({ animated = true, className = "" }: { animated?: b
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6 }}
       >
-        <img 
-          src={aasuLogoImage} 
-          alt="Abdullah Al Salem University" 
+        <img
+          src={aasuLogoImage}
+          alt="Abdullah Al Salem University"
           className="w-full h-full object-contain"
         />
       </motion.div>
@@ -101,9 +119,9 @@ export function AASUFullLogo({ animated = true, className = "" }: { animated?: b
 
   return (
     <div className={`w-48 h-48 ${className}`}>
-      <img 
-        src={aasuLogoImage} 
-        alt="Abdullah Al Salem University" 
+      <img
+        src={aasuLogoImage}
+        alt="Abdullah Al Salem University"
         className="w-full h-full object-contain"
       />
     </div>
