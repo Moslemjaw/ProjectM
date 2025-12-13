@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { projectSubmissionSchema } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { buildApiUrl } from "@/lib/apiConfig";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -42,13 +43,20 @@ interface ProjectSubmissionDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissionDialogProps) {
+export function ProjectSubmissionDialog({
+  open,
+  onOpenChange,
+}: ProjectSubmissionDialogProps) {
   const { toast } = useToast();
   const [isUploadingProposal, setIsUploadingProposal] = useState(false);
   const [isUploadingForm, setIsUploadingForm] = useState(false);
-  const [uploadedProposalFiles, setUploadedProposalFiles] = useState<Array<{ name: string; url: string }>>([]);
-  const [uploadedFormFiles, setUploadedFormFiles] = useState<Array<{ name: string; url: string }>>([]);
-  const [keywordsInput, setKeywordsInput] = useState('');
+  const [uploadedProposalFiles, setUploadedProposalFiles] = useState<
+    Array<{ name: string; url: string }>
+  >([]);
+  const [uploadedFormFiles, setUploadedFormFiles] = useState<
+    Array<{ name: string; url: string }>
+  >([]);
+  const [keywordsInput, setKeywordsInput] = useState("");
 
   const form = useForm<ProjectSubmissionForm>({
     resolver: zodResolver(projectSubmissionSchema),
@@ -67,7 +75,7 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
   // Initialize keywords input when dialog opens
   useEffect(() => {
     if (open) {
-      setKeywordsInput(form.getValues('keywords')?.join(', ') ?? '');
+      setKeywordsInput(form.getValues("keywords")?.join(", ") ?? "");
     }
   }, [open, form]);
 
@@ -79,22 +87,24 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
       reader.onload = () => {
         const result = reader.result as string;
         // Remove the data:application/pdf;base64, prefix
-        const base64 = result.split(',')[1];
+        const base64 = result.split(",")[1];
         resolve(base64);
       };
-      reader.onerror = error => reject(error);
+      reader.onerror = (error) => reject(error);
     });
   };
 
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: 'proposal' | 'form'
+    type: "proposal" | "form"
   ) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     // Validate PDF only
-    const invalidFiles = Array.from(files).filter(file => file.type !== 'application/pdf');
+    const invalidFiles = Array.from(files).filter(
+      (file) => file.type !== "application/pdf"
+    );
     if (invalidFiles.length > 0) {
       toast({
         title: "Invalid file type",
@@ -105,19 +115,25 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
     }
 
     // Check file size (max 10MB per file for better performance)
-    const oversizedFiles = Array.from(files).filter(file => file.size > 10 * 1024 * 1024);
+    const oversizedFiles = Array.from(files).filter(
+      (file) => file.size > 10 * 1024 * 1024
+    );
     if (oversizedFiles.length > 0) {
       toast({
         title: "File too large",
-        description: `Maximum file size is 10MB. Files larger than 10MB: ${oversizedFiles.map(f => f.name).join(', ')}`,
+        description: `Maximum file size is 10MB. Files larger than 10MB: ${oversizedFiles
+          .map((f) => f.name)
+          .join(", ")}`,
         variant: "destructive",
       });
       return;
     }
 
-    const setIsUploading = type === 'proposal' ? setIsUploadingProposal : setIsUploadingForm;
-    const setUploadedFiles = type === 'proposal' ? setUploadedProposalFiles : setUploadedFormFiles;
-    const formField = type === 'proposal' ? 'fileUrls' : 'researchFormUrls';
+    const setIsUploading =
+      type === "proposal" ? setIsUploadingProposal : setIsUploadingForm;
+    const setUploadedFiles =
+      type === "proposal" ? setUploadedProposalFiles : setUploadedFormFiles;
+    const formField = type === "proposal" ? "fileUrls" : "researchFormUrls";
 
     setIsUploading(true);
     try {
@@ -126,11 +142,12 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
       for (const file of Array.from(files)) {
         // Convert file to base64
         const base64Data = await fileToBase64(file);
-        
+
         // Upload file to MongoDB
-        const uploadResponse = await fetch('/api/files/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const uploadResponse = await fetch(buildApiUrl("/api/files/upload"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // Include session cookie
           body: JSON.stringify({
             filename: file.name,
             contentType: file.type,
@@ -140,17 +157,43 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
         });
 
         if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Failed to upload file');
+          let errorMessage = "Failed to upload file";
+          try {
+            const errorData = await uploadResponse.json();
+            errorMessage = errorData.message || errorData.error || errorMessage;
+          } catch {
+            // If response is not JSON, try to get text
+            const text = await uploadResponse.text().catch(() => "");
+            if (text.includes("<!DOCTYPE")) {
+              errorMessage =
+                "Backend API not found. Check VITE_API_URL configuration.";
+            } else if (text) {
+              errorMessage = text.substring(0, 100);
+            }
+          }
+
+          // Provide more specific error messages
+          if (uploadResponse.status === 401) {
+            errorMessage = "Authentication required. Please log in again.";
+          } else if (uploadResponse.status === 413) {
+            errorMessage = "File too large. Maximum size is 10MB.";
+          } else if (uploadResponse.status === 400) {
+            // Keep the specific error message from server
+          } else if (uploadResponse.status === 404) {
+            errorMessage =
+              "Upload endpoint not found. Check API configuration.";
+          }
+
+          throw new Error(errorMessage);
         }
 
         const { url, filename } = await uploadResponse.json();
         uploadedFilesList.push({ name: filename, url });
       }
 
-      setUploadedFiles(prev => [...prev, ...uploadedFilesList]);
+      setUploadedFiles((prev) => [...prev, ...uploadedFilesList]);
       const currentUrls = form.getValues(formField) || [];
-      const newUrls = [...currentUrls, ...uploadedFilesList.map(f => f.url)];
+      const newUrls = [...currentUrls, ...uploadedFilesList.map((f) => f.url)];
       form.setValue(formField, newUrls.length > 0 ? newUrls : undefined);
 
       toast({
@@ -158,9 +201,10 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
         description: `${files.length} file(s) uploaded successfully`,
       });
     } catch (error) {
-      console.error('Upload error:', error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to upload files";
-      
+      console.error("Upload error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to upload files";
+
       toast({
         title: "Upload failed",
         description: errorMessage,
@@ -171,17 +215,17 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
     }
   };
 
-  const removeFile = (index: number, type: 'proposal' | 'form') => {
-    if (type === 'proposal') {
+  const removeFile = (index: number, type: "proposal" | "form") => {
+    if (type === "proposal") {
       const newFiles = uploadedProposalFiles.filter((_, i) => i !== index);
       setUploadedProposalFiles(newFiles);
-      const urls = newFiles.map(f => f.url);
-      form.setValue('fileUrls', urls.length > 0 ? urls : undefined);
+      const urls = newFiles.map((f) => f.url);
+      form.setValue("fileUrls", urls.length > 0 ? urls : undefined);
     } else {
       const newFiles = uploadedFormFiles.filter((_, i) => i !== index);
       setUploadedFormFiles(newFiles);
-      const urls = newFiles.map(f => f.url);
-      form.setValue('researchFormUrls', urls.length > 0 ? urls : undefined);
+      const urls = newFiles.map((f) => f.url);
+      form.setValue("researchFormUrls", urls.length > 0 ? urls : undefined);
     }
   };
 
@@ -219,7 +263,8 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
         <DialogHeader>
           <DialogTitle>Submit New Project</DialogTitle>
           <DialogDescription>
-            Fill in the details of your research proposal. All fields are required.
+            Fill in the details of your research proposal. All fields are
+            required.
           </DialogDescription>
         </DialogHeader>
 
@@ -279,10 +324,10 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
                       onBlur={() => {
                         // Only parse to array when user finishes typing
                         const parsed = keywordsInput
-                          .split(',')
-                          .map(k => k.trim())
+                          .split(",")
+                          .map((k) => k.trim())
                           .filter(Boolean);
-                        form.setValue('keywords', parsed, {
+                        form.setValue("keywords", parsed, {
                           shouldValidate: true,
                           shouldDirty: true,
                           shouldTouch: true,
@@ -292,7 +337,9 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
                     />
                   </FormControl>
                   <FormDescription>
-                    Minimum 5 keywords separated by commas (e.g., Machine Learning, AI, Computer Vision, Neural Networks, Deep Learning)
+                    Minimum 5 keywords separated by commas (e.g., Machine
+                    Learning, AI, Computer Vision, Neural Networks, Deep
+                    Learning)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -314,9 +361,7 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
                       data-testid="input-project-budget"
                     />
                   </FormControl>
-                  <FormDescription>
-                    Kuwaiti Dinar (KD)
-                  </FormDescription>
+                  <FormDescription>Kuwaiti Dinar (KD)</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -404,7 +449,7 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
                   type="file"
                   multiple
                   accept="application/pdf"
-                  onChange={(e) => handleFileUpload(e, 'proposal')}
+                  onChange={(e) => handleFileUpload(e, "proposal")}
                   className="hidden"
                   id="proposal-upload"
                   disabled={isUploadingProposal}
@@ -416,7 +461,9 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
                 >
                   <Upload className="h-8 w-8 text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground">
-                    {isUploadingProposal ? "Uploading..." : "Click to upload or drag and drop"}
+                    {isUploadingProposal
+                      ? "Uploading..."
+                      : "Click to upload or drag and drop"}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     PDF only (MAX. 10MB each)
@@ -441,7 +488,7 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
                         type="button"
                         variant="ghost"
                         size="icon"
-                        onClick={() => removeFile(index, 'proposal')}
+                        onClick={() => removeFile(index, "proposal")}
                         data-testid={`button-remove-proposal-${index}`}
                       >
                         <X className="h-4 w-4" />
@@ -460,7 +507,7 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
                   type="file"
                   multiple
                   accept="application/pdf"
-                  onChange={(e) => handleFileUpload(e, 'form')}
+                  onChange={(e) => handleFileUpload(e, "form")}
                   className="hidden"
                   id="form-upload"
                   disabled={isUploadingForm}
@@ -472,7 +519,9 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
                 >
                   <Upload className="h-8 w-8 text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground">
-                    {isUploadingForm ? "Uploading..." : "Click to upload or drag and drop"}
+                    {isUploadingForm
+                      ? "Uploading..."
+                      : "Click to upload or drag and drop"}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     PDF only (MAX. 10MB each)
@@ -497,7 +546,7 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
                         type="button"
                         variant="ghost"
                         size="icon"
-                        onClick={() => removeFile(index, 'form')}
+                        onClick={() => removeFile(index, "form")}
                         data-testid={`button-remove-form-${index}`}
                       >
                         <X className="h-4 w-4" />
@@ -519,7 +568,11 @@ export function ProjectSubmissionDialog({ open, onOpenChange }: ProjectSubmissio
               </Button>
               <Button
                 type="submit"
-                disabled={submitMutation.isPending || isUploadingProposal || isUploadingForm}
+                disabled={
+                  submitMutation.isPending ||
+                  isUploadingProposal ||
+                  isUploadingForm
+                }
                 data-testid="button-submit-project-form"
               >
                 {submitMutation.isPending ? (

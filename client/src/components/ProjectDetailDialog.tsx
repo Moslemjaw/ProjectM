@@ -15,25 +15,42 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "./StatusBadge";
-import { Building2, Calendar, DollarSign, Zap, Users, AlertCircle, RefreshCw, Edit, Printer, Save, X, FileText, Download } from "lucide-react";
+import {
+  Building2,
+  Calendar,
+  DollarSign,
+  Zap,
+  Users,
+  AlertCircle,
+  RefreshCw,
+  Edit,
+  Printer,
+  Save,
+  X,
+  FileText,
+  Download,
+} from "lucide-react";
 import type { ProjectWithRelations } from "@shared/schema";
 import { format } from "date-fns";
+import { buildApiUrl } from "@/lib/apiConfig";
 
 // Helper function to download files from MongoDB
 const downloadFile = async (fileUrl: string, filename: string) => {
   try {
-    const response = await fetch(fileUrl, {
-      method: 'GET',
-      credentials: 'include',
+    // Ensure fileUrl uses the correct API base URL
+    const fullUrl = fileUrl.startsWith("http") ? fileUrl : buildApiUrl(fileUrl);
+    const response = await fetch(fullUrl, {
+      method: "GET",
+      credentials: "include",
     });
 
     if (!response.ok) {
-      throw new Error('Failed to download file');
+      throw new Error("Failed to download file");
     }
 
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
@@ -41,7 +58,7 @@ const downloadFile = async (fileUrl: string, filename: string) => {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   } catch (error) {
-    console.error('Error downloading file:', error);
+    console.error("Error downloading file:", error);
     throw error;
   }
 };
@@ -57,56 +74,74 @@ interface ProjectDetailDialogProps {
   onEdit?: () => void;
 }
 
-export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: ProjectDetailDialogProps) {
+export function ProjectDetailDialog({
+  project,
+  open,
+  onOpenChange,
+  onEdit,
+}: ProjectDetailDialogProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const isFaculty = user?.role === 'faculty';
-  const isEditor = user?.role === 'editor';
+  const isFaculty = user?.role === "faculty";
+  const isEditor = user?.role === "editor";
   const editorGrades = project.grades || [];
-  const avgEditorScore = editorGrades.length > 0
-    ? editorGrades.reduce((sum, g) => sum + Number(g.score), 0) / editorGrades.length
-    : 0;
-  
+  const avgEditorScore =
+    editorGrades.length > 0
+      ? editorGrades.reduce((sum, g) => sum + Number(g.score), 0) /
+        editorGrades.length
+      : 0;
+
   // Calculate required editors based on budget
   const requiredEditors = Number(project.budget) <= 20000 ? 2 : 3;
   const allEditorsGraded = editorGrades.length === requiredEditors;
-  
-  const isRejected = project.status === 'rejected';
-  const isRevisionRequested = project.status === 'revision_requested';
-  const isNeedsRevision = project.status === 'needs_revision';
-  const isAccepted = project.status === 'accepted';
-  
+
+  const isRejected = project.status === "rejected";
+  const isRevisionRequested = project.status === "revision_requested";
+  const isNeedsRevision = project.status === "needs_revision";
+  const isAccepted = project.status === "accepted";
+
   // Faculty can see detailed grades after final decision
-  const canSeeDetailedGrades = !isFaculty || isAccepted || isRejected || isNeedsRevision;
-  
+  const canSeeDetailedGrades =
+    !isFaculty || isAccepted || isRejected || isNeedsRevision;
+
   // Editing state
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(project.title);
-  const [editedDescription, setEditedDescription] = useState(project.description);
-  const [editedKeywords, setEditedKeywords] = useState(project.keywords?.join(', ') || '');
+  const [editedDescription, setEditedDescription] = useState(
+    project.description
+  );
+  const [editedKeywords, setEditedKeywords] = useState(
+    project.keywords?.join(", ") || ""
+  );
   const [editedBudget, setEditedBudget] = useState(project.budget.toString());
-  const [editedAlignedCenter, setEditedAlignedCenter] = useState(project.alignedCenter || '');
-  
+  const [editedAlignedCenter, setEditedAlignedCenter] = useState(
+    project.alignedCenter || ""
+  );
+
   // File upload state
-  const [newProposalFiles, setNewProposalFiles] = useState<Array<{ name: string; url: string }>>([]);
-  const [newResearchFormFiles, setNewResearchFormFiles] = useState<Array<{ name: string; url: string }>>([]);
+  const [newProposalFiles, setNewProposalFiles] = useState<
+    Array<{ name: string; url: string }>
+  >([]);
+  const [newResearchFormFiles, setNewResearchFormFiles] = useState<
+    Array<{ name: string; url: string }>
+  >([]);
   const [isUploadingProposal, setIsUploadingProposal] = useState(false);
   const [isUploadingForm, setIsUploadingForm] = useState(false);
-  
+
   // Reset form when dialog opens or project changes
   useEffect(() => {
     if (open) {
       setEditedTitle(project.title);
       setEditedDescription(project.description);
-      setEditedKeywords(project.keywords?.join(', ') || '');
+      setEditedKeywords(project.keywords?.join(", ") || "");
       setEditedBudget(project.budget.toString());
-      setEditedAlignedCenter(project.alignedCenter || '');
+      setEditedAlignedCenter(project.alignedCenter || "");
       setIsEditing(false);
       setNewProposalFiles([]);
       setNewResearchFormFiles([]);
     }
   }, [open, project]);
-  
+
   // Helper function to convert file to base64
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -114,35 +149,38 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
       reader.readAsDataURL(file);
       reader.onload = () => {
         const result = reader.result as string;
-        const base64 = result.split(',')[1];
+        const base64 = result.split(",")[1];
         resolve(base64);
       };
-      reader.onerror = error => reject(error);
+      reader.onerror = (error) => reject(error);
     });
   };
-  
+
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: 'proposal' | 'form'
+    type: "proposal" | "form"
   ) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    
-    const setIsUploading = type === 'proposal' ? setIsUploadingProposal : setIsUploadingForm;
-    const setUploadedFiles = type === 'proposal' ? setNewProposalFiles : setNewResearchFormFiles;
-    
+
+    const setIsUploading =
+      type === "proposal" ? setIsUploadingProposal : setIsUploadingForm;
+    const setUploadedFiles =
+      type === "proposal" ? setNewProposalFiles : setNewResearchFormFiles;
+
     setIsUploading(true);
     try {
       const uploadedFilesList = [];
-      
+
       for (const file of Array.from(files)) {
         // Convert file to base64
         const base64Data = await fileToBase64(file);
-        
+
         // Upload file to MongoDB
-        const uploadResponse = await fetch('/api/files/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const uploadResponse = await fetch(buildApiUrl("/api/files/upload"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // Include session cookie
           body: JSON.stringify({
             filename: file.name,
             contentType: file.type,
@@ -150,18 +188,44 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
             data: base64Data,
           }),
         });
-        
+
         if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Failed to upload file');
+          let errorMessage = "Failed to upload file";
+          try {
+            const errorData = await uploadResponse.json();
+            errorMessage = errorData.message || errorData.error || errorMessage;
+          } catch {
+            // If response is not JSON, try to get text
+            const text = await uploadResponse.text().catch(() => "");
+            if (text.includes("<!DOCTYPE")) {
+              errorMessage =
+                "Backend API not found. Check VITE_API_URL configuration.";
+            } else if (text) {
+              errorMessage = text.substring(0, 100);
+            }
+          }
+
+          // Provide more specific error messages
+          if (uploadResponse.status === 401) {
+            errorMessage = "Authentication required. Please log in again.";
+          } else if (uploadResponse.status === 413) {
+            errorMessage = "File too large. Maximum size is 10MB.";
+          } else if (uploadResponse.status === 400) {
+            // Keep the specific error message from server
+          } else if (uploadResponse.status === 404) {
+            errorMessage =
+              "Upload endpoint not found. Check API configuration.";
+          }
+
+          throw new Error(errorMessage);
         }
-        
+
         const { url, filename } = await uploadResponse.json();
         uploadedFilesList.push({ name: filename, url });
       }
-      
-      setUploadedFiles(prev => [...prev, ...uploadedFilesList]);
-      
+
+      setUploadedFiles((prev) => [...prev, ...uploadedFilesList]);
+
       toast({
         title: "Files uploaded",
         description: `${files.length} file(s) uploaded successfully`,
@@ -180,28 +244,37 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
   const resubmitMutation = useMutation({
     mutationFn: async () => {
       // Safety check: Only needs_revision projects can be resubmitted
-      if (project.status !== 'needs_revision') {
-        throw new Error('Only projects with revision requests can be resubmitted. Rejected projects are final.');
+      if (project.status !== "needs_revision") {
+        throw new Error(
+          "Only projects with revision requests can be resubmitted. Rejected projects are final."
+        );
       }
-      
+
       // Prepare resubmission data with updated fields and files
       const resubmitData: any = {
         title: editedTitle,
         description: editedDescription,
-        keywords: editedKeywords.split(',').map(k => k.trim()).filter(Boolean),
+        keywords: editedKeywords
+          .split(",")
+          .map((k) => k.trim())
+          .filter(Boolean),
         budget: parseFloat(editedBudget),
         alignedCenter: editedAlignedCenter || null,
       };
-      
+
       // Add new file URLs if uploaded (otherwise keep existing)
       if (newProposalFiles.length > 0) {
-        resubmitData.fileUrls = newProposalFiles.map(f => f.url);
+        resubmitData.fileUrls = newProposalFiles.map((f) => f.url);
       }
       if (newResearchFormFiles.length > 0) {
-        resubmitData.researchFormUrls = newResearchFormFiles.map(f => f.url);
+        resubmitData.researchFormUrls = newResearchFormFiles.map((f) => f.url);
       }
-      
-      return apiRequest("POST", `/api/projects/${project.id}/resubmit`, resubmitData);
+
+      return apiRequest(
+        "POST",
+        `/api/projects/${project.id}/resubmit`,
+        resubmitData
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects/my"] });
@@ -223,7 +296,10 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
   const updateMutation = useMutation({
     mutationFn: async () => {
       // Validate keywords (minimum 5)
-      const keywordsArray = editedKeywords.split(',').map(k => k.trim()).filter(Boolean);
+      const keywordsArray = editedKeywords
+        .split(",")
+        .map((k) => k.trim())
+        .filter(Boolean);
       if (keywordsArray.length < 5) {
         throw new Error("At least 5 keywords are required");
       }
@@ -256,18 +332,21 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
 
   const handlePrintGrade = async (gradeId: string, reviewerName: string) => {
     try {
-      const response = await fetch(`/api/projects/${project.id}/grades/${gradeId}/print`, {
-        method: 'GET',
-        credentials: 'include',
-      });
+      const response = await fetch(
+        `/api/projects/${project.id}/grades/${gradeId}/print`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to generate document');
+        throw new Error("Failed to generate document");
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `Evaluation_${reviewerName}_${project.title}.pdf`;
       document.body.appendChild(a);
@@ -308,11 +387,15 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                   </div>
                 </div>
               ) : (
-                <DialogTitle className="text-2xl mb-2">{project.title}</DialogTitle>
+                <DialogTitle className="text-2xl mb-2">
+                  {project.title}
+                </DialogTitle>
               )}
               <div className="text-base mt-2 space-y-3">
                 <div>
-                  <span className="text-xs font-semibold uppercase text-muted-foreground">Abstract</span>
+                  <span className="text-xs font-semibold uppercase text-muted-foreground">
+                    Abstract
+                  </span>
                   {isEditing ? (
                     <Textarea
                       value={editedDescription}
@@ -322,11 +405,15 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                       data-testid="textarea-edit-description"
                     />
                   ) : (
-                    <p className="mt-1 text-muted-foreground">{project.description}</p>
+                    <p className="mt-1 text-muted-foreground">
+                      {project.description}
+                    </p>
                   )}
                 </div>
                 <div>
-                  <span className="text-xs font-semibold uppercase text-muted-foreground">Keywords</span>
+                  <span className="text-xs font-semibold uppercase text-muted-foreground">
+                    Keywords
+                  </span>
                   {isEditing ? (
                     <Input
                       value={editedKeywords}
@@ -338,7 +425,11 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                   ) : (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {project.keywords?.map((keyword, idx) => (
-                        <Badge key={idx} variant="secondary" className="text-xs">
+                        <Badge
+                          key={idx}
+                          variant="secondary"
+                          className="text-xs"
+                        >
                           {keyword}
                         </Badge>
                       ))}
@@ -398,7 +489,7 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                   data-testid="input-edit-research-center"
                 />
               ) : (
-                <p className="font-medium">{project.alignedCenter || '—'}</p>
+                <p className="font-medium">{project.alignedCenter || "—"}</p>
               )}
             </div>
 
@@ -407,7 +498,9 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                 <Calendar className="h-4 w-4" />
                 <span>Submitted</span>
               </div>
-              <p className="font-medium">{format(new Date(project.createdAt!), 'PPP')}</p>
+              <p className="font-medium">
+                {format(new Date(project.createdAt!), "PPP")}
+              </p>
             </div>
 
             <div className="space-y-1">
@@ -415,12 +508,16 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                 <Users className="h-4 w-4" />
                 <span>Assigned Reviewers</span>
               </div>
-              <p className="font-medium">{project.reviewerAssignments?.length || 0}</p>
+              <p className="font-medium">
+                {project.reviewerAssignments?.length || 0}
+              </p>
             </div>
           </div>
 
           {/* Uploaded Documents */}
-          {((project.fileUrls && project.fileUrls.length > 0) || (project.researchFormUrls && project.researchFormUrls.length > 0)) && (
+          {((project.fileUrls && project.fileUrls.length > 0) ||
+            (project.researchFormUrls &&
+              project.researchFormUrls.length > 0)) && (
             <>
               <Separator />
               <div>
@@ -428,11 +525,15 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                 <div className="grid grid-cols-2 gap-3">
                   {project.fileUrls && project.fileUrls.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">Complete Proposal</p>
+                      <p className="text-sm text-muted-foreground">
+                        Complete Proposal
+                      </p>
                       {project.fileUrls.map((fileUrl, idx) => (
                         <button
                           key={idx}
-                          onClick={() => downloadFile(fileUrl, `Proposal_${idx + 1}.pdf`)}
+                          onClick={() =>
+                            downloadFile(fileUrl, `Proposal_${idx + 1}.pdf`)
+                          }
                           className="flex items-center gap-2 p-2 border rounded-md hover-elevate active-elevate-2 text-sm w-full"
                           data-testid={`button-download-proposal-${idx}`}
                         >
@@ -443,36 +544,48 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                       ))}
                     </div>
                   )}
-                  {project.researchFormUrls && project.researchFormUrls.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">Research Project Form</p>
-                      {project.researchFormUrls.map((fileUrl, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => downloadFile(fileUrl, `ResearchForm_${idx + 1}.pdf`)}
-                          className="flex items-center gap-2 p-2 border rounded-md hover-elevate active-elevate-2 text-sm w-full"
-                          data-testid={`button-download-form-${idx}`}
-                        >
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <span>ResearchForm_{idx + 1}.pdf</span>
-                          <Download className="h-3 w-3 ml-auto" />
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  {project.researchFormUrls &&
+                    project.researchFormUrls.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          Research Project Form
+                        </p>
+                        {project.researchFormUrls.map((fileUrl, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() =>
+                              downloadFile(
+                                fileUrl,
+                                `ResearchForm_${idx + 1}.pdf`
+                              )
+                            }
+                            className="flex items-center gap-2 p-2 border rounded-md hover-elevate active-elevate-2 text-sm w-full"
+                            data-testid={`button-download-form-${idx}`}
+                          >
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <span>ResearchForm_{idx + 1}.pdf</span>
+                            <Download className="h-3 w-3 ml-auto" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
                 </div>
               </div>
             </>
           )}
-          
+
           {/* File Upload Section - Only show when resubmitting needs_revision projects */}
           {isFaculty && isNeedsRevision && (
             <>
               <Separator />
               <div>
-                <h4 className="font-semibold mb-3">Upload New Files (Optional)</h4>
+                <h4 className="font-semibold mb-3">
+                  Upload New Files (Optional)
+                </h4>
                 <p className="text-sm text-muted-foreground mb-4">
-                  You can upload new versions of your proposal documents if needed. If no new files are uploaded, the existing files will be used.
+                  You can upload new versions of your proposal documents if
+                  needed. If no new files are uploaded, the existing files will
+                  be used.
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -481,7 +594,7 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                       type="file"
                       multiple
                       accept="application/pdf"
-                      onChange={(e) => handleFileUpload(e, 'proposal')}
+                      onChange={(e) => handleFileUpload(e, "proposal")}
                       className="hidden"
                       id="proposal-upload-resubmit"
                       disabled={isUploadingProposal}
@@ -490,7 +603,11 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                       type="button"
                       variant="outline"
                       className="w-full"
-                      onClick={() => document.getElementById('proposal-upload-resubmit')?.click()}
+                      onClick={() =>
+                        document
+                          .getElementById("proposal-upload-resubmit")
+                          ?.click()
+                      }
                       disabled={isUploadingProposal}
                       data-testid="button-upload-proposal-resubmit"
                     >
@@ -499,7 +616,10 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                     {newProposalFiles.length > 0 && (
                       <div className="space-y-1">
                         {newProposalFiles.map((file, idx) => (
-                          <div key={idx} className="flex items-center gap-2 p-2 border rounded text-xs">
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2 p-2 border rounded text-xs"
+                          >
                             <FileText className="h-3 w-3 text-muted-foreground" />
                             <span className="truncate">{file.name}</span>
                           </div>
@@ -507,14 +627,14 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label>Research Project Form</Label>
                     <input
                       type="file"
                       multiple
                       accept="application/pdf"
-                      onChange={(e) => handleFileUpload(e, 'form')}
+                      onChange={(e) => handleFileUpload(e, "form")}
                       className="hidden"
                       id="form-upload-resubmit"
                       disabled={isUploadingForm}
@@ -523,7 +643,9 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                       type="button"
                       variant="outline"
                       className="w-full"
-                      onClick={() => document.getElementById('form-upload-resubmit')?.click()}
+                      onClick={() =>
+                        document.getElementById("form-upload-resubmit")?.click()
+                      }
                       disabled={isUploadingForm}
                       data-testid="button-upload-form-resubmit"
                     >
@@ -532,7 +654,10 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                     {newResearchFormFiles.length > 0 && (
                       <div className="space-y-1">
                         {newResearchFormFiles.map((file, idx) => (
-                          <div key={idx} className="flex items-center gap-2 p-2 border rounded text-xs">
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2 p-2 border rounded text-xs"
+                          >
                             <FileText className="h-3 w-3 text-muted-foreground" />
                             <span className="truncate">{file.name}</span>
                           </div>
@@ -550,19 +675,37 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
           {/* Editor Comments - Show for both rejected and needs_revision */}
           {(isRejected || isNeedsRevision) && project.rejectionReason && (
             <>
-              <div className={`${isRejected ? 'bg-destructive/10 border-2 border-destructive/20' : 'bg-warning/10 border-2 border-warning/20'} rounded-lg p-4`}>
+              <div
+                className={`${
+                  isRejected
+                    ? "bg-destructive/10 border-2 border-destructive/20"
+                    : "bg-warning/10 border-2 border-warning/20"
+                } rounded-lg p-4`}
+              >
                 <div className="flex items-start gap-3">
-                  <AlertCircle className={`h-5 w-5 ${isRejected ? 'text-destructive' : 'text-warning'} shrink-0 mt-0.5`} />
+                  <AlertCircle
+                    className={`h-5 w-5 ${
+                      isRejected ? "text-destructive" : "text-warning"
+                    } shrink-0 mt-0.5`}
+                  />
                   <div className="flex-1">
-                    <h4 className={`font-semibold ${isRejected ? 'text-destructive' : 'text-warning'} mb-2`}>
-                      {isRejected ? 'Project Rejected' : 'Revision Requested'}
+                    <h4
+                      className={`font-semibold ${
+                        isRejected ? "text-destructive" : "text-warning"
+                      } mb-2`}
+                    >
+                      {isRejected ? "Project Rejected" : "Revision Requested"}
                     </h4>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap" data-testid="text-rejection-reason">
+                    <p
+                      className="text-sm text-muted-foreground whitespace-pre-wrap"
+                      data-testid="text-rejection-reason"
+                    >
                       {project.rejectionReason}
                     </p>
                     {project.editorReviewedAt && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        Reviewed on {format(new Date(project.editorReviewedAt), 'PPP')}
+                        Reviewed on{" "}
+                        {format(new Date(project.editorReviewedAt), "PPP")}
                       </p>
                     )}
                   </div>
@@ -579,13 +722,19 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                 <div className="flex items-start gap-3">
                   <Edit className="h-5 w-5 text-warning shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <h4 className="font-semibold text-warning mb-2">Revision Requested</h4>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap" data-testid="text-revision-comments">
+                    <h4 className="font-semibold text-warning mb-2">
+                      Revision Requested
+                    </h4>
+                    <p
+                      className="text-sm text-muted-foreground whitespace-pre-wrap"
+                      data-testid="text-revision-comments"
+                    >
                       {project.revisionComments}
                     </p>
                     {project.editorReviewedAt && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        Requested on {format(new Date(project.editorReviewedAt), 'PPP')}
+                        Requested on{" "}
+                        {format(new Date(project.editorReviewedAt), "PPP")}
                       </p>
                     )}
                   </div>
@@ -623,7 +772,9 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
 
             {project.finalScore && allEditorsGraded && (
               <div className="text-center p-4 border rounded-lg bg-primary/5">
-                <div className="text-sm text-muted-foreground mb-2">Final Score</div>
+                <div className="text-sm text-muted-foreground mb-2">
+                  Final Score
+                </div>
                 <p className="text-3xl font-bold font-mono text-primary">
                   {parseFloat(project.finalScore).toFixed(1)}
                 </p>
@@ -633,78 +784,109 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
           </div>
 
           {/* Reviewers - Faculty sees only count and status BEFORE final decision */}
-          {project.reviewerAssignments && project.reviewerAssignments.length > 0 && isFaculty && !canSeeDetailedGrades && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="font-semibold mb-3">Review Progress</h4>
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Reviewers Assigned</p>
-                      <p className="text-2xl font-bold">{project.reviewerAssignments.length}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Completed Reviews</p>
-                      <p className="text-2xl font-bold">{editorGrades.length}/{project.reviewerAssignments.length}</p>
-                    </div>
-                    <div>
-                      {allEditorsGraded ? (
-                        <Badge variant="default" className="text-sm">All Reviews Complete</Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-sm">In Progress</Badge>
-                      )}
+          {project.reviewerAssignments &&
+            project.reviewerAssignments.length > 0 &&
+            isFaculty &&
+            !canSeeDetailedGrades && (
+              <>
+                <Separator />
+                <div>
+                  <h4 className="font-semibold mb-3">Review Progress</h4>
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Reviewers Assigned
+                        </p>
+                        <p className="text-2xl font-bold">
+                          {project.reviewerAssignments.length}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Completed Reviews
+                        </p>
+                        <p className="text-2xl font-bold">
+                          {editorGrades.length}/
+                          {project.reviewerAssignments.length}
+                        </p>
+                      </div>
+                      <div>
+                        {allEditorsGraded ? (
+                          <Badge variant="default" className="text-sm">
+                            All Reviews Complete
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-sm">
+                            In Progress
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
 
           {/* Editors - Non-faculty sees detailed reviewer info */}
-          {project.reviewerAssignments && project.reviewerAssignments.length > 0 && !isFaculty && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="font-semibold mb-3">Assigned Reviewers</h4>
-                <div className="space-y-3">
-                  {project.reviewerAssignments.map((assignment) => {
-                    const grade = editorGrades.find(g => g.reviewerId === assignment.reviewerId);
-                    return (
-                      <div key={assignment.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={assignment.reviewer.profileImageUrl || undefined} />
-                            <AvatarFallback>
-                              {assignment.reviewer.firstName?.charAt(0)}{assignment.reviewer.lastName?.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-sm">
-                              {assignment.reviewer.firstName} {assignment.reviewer.lastName}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {assignment.reviewer.department || 'No department'}
-                            </p>
+          {project.reviewerAssignments &&
+            project.reviewerAssignments.length > 0 &&
+            !isFaculty && (
+              <>
+                <Separator />
+                <div>
+                  <h4 className="font-semibold mb-3">Assigned Reviewers</h4>
+                  <div className="space-y-3">
+                    {project.reviewerAssignments.map((assignment) => {
+                      const grade = editorGrades.find(
+                        (g) => g.reviewerId === assignment.reviewerId
+                      );
+                      return (
+                        <div
+                          key={assignment.id}
+                          className="flex items-center justify-between p-3 border rounded-lg"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage
+                                src={
+                                  assignment.reviewer.profileImageUrl ||
+                                  undefined
+                                }
+                              />
+                              <AvatarFallback>
+                                {assignment.reviewer.firstName?.charAt(0)}
+                                {assignment.reviewer.lastName?.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium text-sm">
+                                {assignment.reviewer.firstName}{" "}
+                                {assignment.reviewer.lastName}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {assignment.reviewer.department ||
+                                  "No department"}
+                              </p>
+                            </div>
                           </div>
+                          {grade ? (
+                            <div className="text-right">
+                              <Badge variant="default">Graded</Badge>
+                              <p className="text-sm font-mono font-medium mt-1">
+                                {parseFloat(grade.score).toFixed(1)}/60
+                              </p>
+                            </div>
+                          ) : (
+                            <Badge variant="secondary">Pending</Badge>
+                          )}
                         </div>
-                        {grade ? (
-                          <div className="text-right">
-                            <Badge variant="default">Graded</Badge>
-                            <p className="text-sm font-mono font-medium mt-1">
-                              {parseFloat(grade.score).toFixed(1)}/60
-                            </p>
-                          </div>
-                        ) : (
-                          <Badge variant="secondary">Pending</Badge>
-                        )}
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
 
           {/* Reviewer Feedback - Visible after final decision */}
           {editorGrades.length > 0 && canSeeDetailedGrades && (
@@ -714,15 +896,23 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                 <h4 className="font-semibold mb-3">Reviewer Feedback</h4>
                 <div className="space-y-4">
                   {editorGrades.map((grade) => {
-                    const reviewer = project.reviewerAssignments.find(a => a.reviewerId === grade.reviewerId)?.reviewer;
+                    const reviewer = project.reviewerAssignments.find(
+                      (a) => a.reviewerId === grade.reviewerId
+                    )?.reviewer;
                     return (
-                      <div key={grade.id} className="border rounded-lg p-4 space-y-3">
+                      <div
+                        key={grade.id}
+                        className="border rounded-lg p-4 space-y-3"
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
-                              <AvatarImage src={reviewer?.profileImageUrl || undefined} />
+                              <AvatarImage
+                                src={reviewer?.profileImageUrl || undefined}
+                              />
                               <AvatarFallback className="text-xs">
-                                {reviewer?.firstName?.charAt(0)}{reviewer?.lastName?.charAt(0)}
+                                {reviewer?.firstName?.charAt(0)}
+                                {reviewer?.lastName?.charAt(0)}
                               </AvatarFallback>
                             </Avatar>
                             <span className="text-sm font-medium">
@@ -733,11 +923,17 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                             <span className="text-lg font-bold font-mono">
                               {parseFloat(grade.score).toFixed(1)}/60
                             </span>
-                            {(isEditor || (isFaculty && canSeeDetailedGrades)) && (
+                            {(isEditor ||
+                              (isFaculty && canSeeDetailedGrades)) && (
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handlePrintGrade(grade.id, `${reviewer?.firstName}_${reviewer?.lastName}`)}
+                                onClick={() =>
+                                  handlePrintGrade(
+                                    grade.id,
+                                    `${reviewer?.firstName}_${reviewer?.lastName}`
+                                  )
+                                }
                                 data-testid={`button-print-grade-${grade.id}`}
                               >
                                 <Printer className="h-4 w-4 mr-2" />
@@ -750,31 +946,45 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                         {/* Criteria Breakdown */}
                         {grade.criteria && (
                           <div className="bg-muted/30 p-3 rounded-lg space-y-2">
-                            <p className="text-xs font-semibold mb-2">Criteria Breakdown:</p>
+                            <p className="text-xs font-semibold mb-2">
+                              Criteria Breakdown:
+                            </p>
                             <div className="grid grid-cols-2 gap-2 text-xs">
                               <div className="flex justify-between">
                                 <span>Background/Introduction:</span>
-                                <span className="font-mono font-medium">{grade.criteria.backgroundIntroduction}/10</span>
+                                <span className="font-mono font-medium">
+                                  {grade.criteria.backgroundIntroduction}/10
+                                </span>
                               </div>
                               <div className="flex justify-between">
                                 <span>Novelty & Originality:</span>
-                                <span className="font-mono font-medium">{grade.criteria.noveltyOriginality}/10</span>
+                                <span className="font-mono font-medium">
+                                  {grade.criteria.noveltyOriginality}/10
+                                </span>
                               </div>
                               <div className="flex justify-between">
                                 <span>Clear Objectives:</span>
-                                <span className="font-mono font-medium">{grade.criteria.clearRealisticObjectives}/10</span>
+                                <span className="font-mono font-medium">
+                                  {grade.criteria.clearRealisticObjectives}/10
+                                </span>
                               </div>
                               <div className="flex justify-between">
                                 <span>Dissemination:</span>
-                                <span className="font-mono font-medium">{grade.criteria.disseminationResults}/10</span>
+                                <span className="font-mono font-medium">
+                                  {grade.criteria.disseminationResults}/10
+                                </span>
                               </div>
                               <div className="flex justify-between">
                                 <span>Significance:</span>
-                                <span className="font-mono font-medium">{grade.criteria.significance}/10</span>
+                                <span className="font-mono font-medium">
+                                  {grade.criteria.significance}/10
+                                </span>
                               </div>
                               <div className="flex justify-between">
                                 <span>Feasibility & Planning:</span>
-                                <span className="font-mono font-medium">{grade.criteria.feasibilityPlanning}/10</span>
+                                <span className="font-mono font-medium">
+                                  {grade.criteria.feasibilityPlanning}/10
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -783,13 +993,17 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                         {grade.comments && (
                           <div className="text-sm">
                             <p className="font-medium mb-1">Comments:</p>
-                            <p className="text-muted-foreground">{grade.comments}</p>
+                            <p className="text-muted-foreground">
+                              {grade.comments}
+                            </p>
                           </div>
                         )}
                         {grade.recommendations && (
                           <div className="text-sm">
                             <p className="font-medium mb-1">Recommendations:</p>
-                            <p className="text-muted-foreground">{grade.recommendations}</p>
+                            <p className="text-muted-foreground">
+                              {grade.recommendations}
+                            </p>
                           </div>
                         )}
                       </div>
@@ -810,9 +1024,9 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
                 // Reset to original values
                 setEditedTitle(project.title);
                 setEditedDescription(project.description);
-                setEditedKeywords(project.keywords?.join(', ') || '');
+                setEditedKeywords(project.keywords?.join(", ") || "");
                 setEditedBudget(project.budget.toString());
-                setEditedAlignedCenter(project.alignedCenter || '');
+                setEditedAlignedCenter(project.alignedCenter || "");
                 setIsEditing(false);
               }}
               disabled={updateMutation.isPending}
@@ -841,7 +1055,9 @@ export function ProjectDetailDialog({ project, open, onOpenChange, onEdit }: Pro
               data-testid="button-resubmit-project"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
-              {resubmitMutation.isPending ? "Resubmitting..." : "Resubmit for Review"}
+              {resubmitMutation.isPending
+                ? "Resubmitting..."
+                : "Resubmit for Review"}
             </Button>
           </DialogFooter>
         )}
