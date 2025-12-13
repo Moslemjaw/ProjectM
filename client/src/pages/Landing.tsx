@@ -211,19 +211,19 @@ export default function Landing() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#00b8a9]/10 rounded-full blur-[120px] animate-pulse-slow"></div>
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#f9a825]/10 rounded-full blur-[100px] animate-pulse-slower"></div>
 
-      {/* AASU Brand Shapes - Sharp corners, horseshoe shapes, triangles spread across page */}
+      {/* AASU Brand Shapes - Scattered across the entire page */}
 
-      {/* TOP LEFT AREA */}
+      {/* Scattered shapes - distributed randomly across the page */}
       <motion.div
-        className="absolute top-16 left-6 opacity-70"
-        animate={{ y: [0, -6, 0] }}
+        className="absolute top-[8%] left-[12%] opacity-70"
+        animate={{ y: [0, -6, 0], rotate: [0, 5, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       >
         <PlusShape size={70} />
       </motion.div>
 
       <motion.div
-        className="absolute top-24 left-24 opacity-80"
+        className="absolute top-[15%] left-[28%] opacity-80"
         animate={{ rotate: [45, 50, 45], y: [0, 5, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -231,139 +231,15 @@ export default function Landing() {
       </motion.div>
 
       <motion.div
-        className="absolute top-40 left-4 opacity-60"
+        className="absolute top-[22%] left-[6%] opacity-60"
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
       >
         <Triangle size={22} color="teal" direction="right" />
       </motion.div>
 
-      {/* LEFT SIDE */}
       <motion.div
-        className="absolute top-[28%] left-8 opacity-55"
-        animate={{ y: [0, 6, 0] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <Triangle size={30} color="navy" direction="right" />
-      </motion.div>
-
-      <motion.div
-        className="absolute top-[35%] left-20 opacity-60"
-        animate={{ y: [0, 5, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <SharpSquare size={28} color="orange" />
-      </motion.div>
-
-      <motion.div
-        className="absolute top-[44%] left-4 opacity-60"
-        animate={{ y: [0, 8, 0] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <DiagonalSquares size={60} />
-      </motion.div>
-
-      <motion.div
-        className="absolute top-[54%] left-16 opacity-55"
-        animate={{ y: [0, 7, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <PlusShape size={55} />
-      </motion.div>
-
-      <motion.div
-        className="absolute top-[64%] left-6 opacity-55"
-        animate={{ y: [0, 5, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <Triangle size={28} color="navy" direction="down" />
-      </motion.div>
-
-      <motion.div
-        className="absolute top-[74%] left-14 opacity-60"
-        animate={{ rotate: [45, 50, 45] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <Diamond color="orange" size={22} />
-      </motion.div>
-
-      <motion.div
-        className="absolute top-[82%] left-4 opacity-50"
-        animate={{ y: [0, 6, 0] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <SharpSquare size={24} color="navy" />
-      </motion.div>
-
-      {/* BOTTOM LEFT */}
-      <motion.div
-        className="absolute bottom-32 left-8 opacity-55"
-        animate={{ y: [0, 8, 0] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <PlusShape size={55} />
-      </motion.div>
-
-      <motion.div
-        className="absolute bottom-20 left-24 opacity-55"
-        animate={{ y: [0, 5, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <Triangle size={26} color="teal" direction="up" />
-      </motion.div>
-
-      <motion.div
-        className="absolute bottom-8 left-6 opacity-55"
-        animate={{ y: [0, 6, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <DiagonalSquares size={50} />
-      </motion.div>
-
-      {/* CENTER AREA */}
-      <motion.div
-        className="absolute top-[45%] left-[32%] opacity-55"
-        animate={{ rotate: [45, 52, 45], y: [0, -5, 0] }}
-        transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <Diamond color="orange" size={20} />
-      </motion.div>
-
-      <motion.div
-        className="absolute top-[52%] left-[38%] opacity-50"
-        animate={{ y: [0, 6, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <Triangle size={22} color="teal" direction="down" />
-      </motion.div>
-
-      <motion.div
-        className="absolute top-[48%] left-[52%] opacity-45"
-        animate={{ y: [0, 5, 0] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <PlusShape size={50} />
-      </motion.div>
-
-      <motion.div
-        className="absolute top-[58%] left-[45%] opacity-50"
-        animate={{ y: [0, 5, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <SharpSquare size={22} color="navy" />
-      </motion.div>
-
-      {/* TOP RIGHT AREA */}
-      <motion.div
-        className="absolute top-14 right-6 opacity-70"
-        animate={{ y: [0, -5, 0] }}
-        transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <PlusShape size={60} />
-      </motion.div>
-
-      <motion.div
-        className="absolute top-28 right-20 opacity-65"
+        className="absolute top-[18%] right-[15%] opacity-65"
         animate={{ y: [0, 6, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -371,16 +247,15 @@ export default function Landing() {
       </motion.div>
 
       <motion.div
-        className="absolute top-40 right-8 opacity-55"
-        animate={{ y: [0, 6, 0] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-[12%] right-[8%] opacity-70"
+        animate={{ y: [0, -5, 0] }}
+        transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
       >
-        <DiagonalSquares size={50} />
+        <PlusShape size={60} />
       </motion.div>
 
-      {/* RIGHT SIDE */}
       <motion.div
-        className="absolute top-[28%] right-16 opacity-60"
+        className="absolute top-[25%] right-[22%] opacity-60"
         animate={{ rotate: [45, 50, 45], y: [0, 8, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -388,7 +263,23 @@ export default function Landing() {
       </motion.div>
 
       <motion.div
-        className="absolute top-[36%] right-4 opacity-55"
+        className="absolute top-[32%] left-[18%] opacity-55"
+        animate={{ y: [0, 6, 0] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Triangle size={30} color="navy" direction="right" />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[38%] left-[35%] opacity-60"
+        animate={{ y: [0, 5, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <SharpSquare size={28} color="orange" />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[42%] right-[12%] opacity-55"
         animate={{ y: [0, 7, 0] }}
         transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -396,7 +287,7 @@ export default function Landing() {
       </motion.div>
 
       <motion.div
-        className="absolute top-[44%] right-14 opacity-55"
+        className="absolute top-[35%] right-[6%] opacity-55"
         animate={{ y: [0, 6, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -404,7 +295,39 @@ export default function Landing() {
       </motion.div>
 
       <motion.div
-        className="absolute top-[54%] right-6 opacity-55"
+        className="absolute top-[48%] left-[8%] opacity-60"
+        animate={{ y: [0, 8, 0] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <DiagonalSquares size={60} />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[52%] left-[42%] opacity-55"
+        animate={{ rotate: [45, 52, 45], y: [0, -5, 0] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Diamond color="orange" size={20} />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[55%] right-[28%] opacity-50"
+        animate={{ y: [0, 6, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Triangle size={22} color="teal" direction="down" />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[58%] left-[25%] opacity-55"
+        animate={{ y: [0, 7, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <PlusShape size={55} />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[62%] right-[18%] opacity-55"
         animate={{ y: [0, 5, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -412,7 +335,15 @@ export default function Landing() {
       </motion.div>
 
       <motion.div
-        className="absolute top-[64%] right-20 opacity-60"
+        className="absolute top-[65%] left-[15%] opacity-55"
+        animate={{ y: [0, 5, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Triangle size={28} color="navy" direction="down" />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[68%] right-[35%] opacity-60"
         animate={{ rotate: [45, 48, 45] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -420,7 +351,15 @@ export default function Landing() {
       </motion.div>
 
       <motion.div
-        className="absolute top-[72%] right-4 opacity-55"
+        className="absolute top-[72%] left-[32%] opacity-60"
+        animate={{ rotate: [45, 50, 45] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Diamond color="orange" size={22} />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[75%] right-[8%] opacity-55"
         animate={{ y: [0, 6, 0] }}
         transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -428,49 +367,23 @@ export default function Landing() {
       </motion.div>
 
       <motion.div
-        className="absolute top-[80%] right-16 opacity-50"
+        className="absolute top-[78%] left-[22%] opacity-50"
+        animate={{ y: [0, 6, 0] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <SharpSquare size={24} color="navy" />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[82%] right-[25%] opacity-50"
         animate={{ y: [0, 5, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       >
         <DiagonalSquares size={45} />
       </motion.div>
 
-      {/* BOTTOM RIGHT */}
       <motion.div
-        className="absolute bottom-36 right-16 opacity-55"
-        animate={{ y: [0, 6, 0] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <Triangle size={28} color="navy" direction="down" />
-      </motion.div>
-
-      <motion.div
-        className="absolute bottom-48 right-4 opacity-50"
-        animate={{ y: [0, 5, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <PlusShape size={55} />
-      </motion.div>
-
-      <motion.div
-        className="absolute bottom-20 right-6 opacity-55 hidden md:block"
-        animate={{ y: [0, 5, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <SharpSquare size={26} color="teal" />
-      </motion.div>
-
-      <motion.div
-        className="absolute bottom-8 right-24 opacity-50"
-        animate={{ y: [0, 4, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <Triangle size={20} color="orange" direction="right" />
-      </motion.div>
-
-      {/* BOTTOM CENTER */}
-      <motion.div
-        className="absolute bottom-24 left-[40%] opacity-50"
+        className="absolute top-[85%] left-[45%] opacity-50"
         animate={{ y: [0, 5, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -478,11 +391,43 @@ export default function Landing() {
       </motion.div>
 
       <motion.div
-        className="absolute bottom-12 left-[55%] opacity-45"
+        className="absolute top-[88%] right-[42%] opacity-45"
         animate={{ y: [0, 5, 0] }}
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
       >
         <Triangle size={24} color="teal" direction="up" />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[92%] left-[38%] opacity-55"
+        animate={{ y: [0, 8, 0] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <PlusShape size={55} />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[90%] right-[15%] opacity-50"
+        animate={{ y: [0, 4, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Triangle size={20} color="orange" direction="right" />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[28%] left-[55%] opacity-45"
+        animate={{ y: [0, 5, 0] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <PlusShape size={50} />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[45%] right-[45%] opacity-50"
+        animate={{ y: [0, 5, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <SharpSquare size={22} color="navy" />
       </motion.div>
 
       <header className="border-b backdrop-blur-sm bg-background/80 sticky top-0 z-50">
@@ -527,10 +472,6 @@ export default function Landing() {
           initial="hidden"
           animate="visible"
         >
-          <motion.div variants={itemVariants} className="flex justify-center">
-            <AASUFullLogo animated={true} />
-          </motion.div>
-
           <motion.div variants={itemVariants}>
             <div
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#60c2ac]/30"
