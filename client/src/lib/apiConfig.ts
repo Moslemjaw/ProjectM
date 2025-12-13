@@ -9,7 +9,10 @@ const getApiBaseUrl = (): string => {
 
   // In production, use the backend API URL from environment variable
   // Fallback to relative URL if not set (for same-origin deployments)
-  const apiUrl = import.meta.env.VITE_API_URL || "";
+  let apiUrl = import.meta.env.VITE_API_URL || "";
+
+  // Remove trailing slash to avoid double slashes
+  apiUrl = apiUrl.replace(/\/+$/, "");
 
   // Log warning in console if API URL is not set in production
   if (!apiUrl && !import.meta.env.DEV) {
@@ -26,11 +29,11 @@ export const API_BASE_URL = getApiBaseUrl();
 
 // Helper function to build full API URLs
 export const buildApiUrl = (path: string): string => {
-  // Remove leading slash if present to avoid double slashes
-  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-  const fullUrl = API_BASE_URL
-    ? `${API_BASE_URL}/${cleanPath}`
-    : `/${cleanPath}`;
+  // Ensure path starts with a single slash
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+  // Build the full URL
+  const fullUrl = API_BASE_URL ? `${API_BASE_URL}${cleanPath}` : cleanPath;
 
   // Log API URL in development and production for debugging
   if (import.meta.env.DEV) {

@@ -29,6 +29,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
   setupSession(app);
 
+  // Log all API requests for debugging
+  app.use("/api", (req, res, next) => {
+    console.log(
+      `[API Request] ${req.method} ${req.path} from ${
+        req.headers.origin || "no origin"
+      }`
+    );
+    next();
+  });
+
   // Health check endpoint
   app.get("/api/health", (req, res) => {
     res.json({
@@ -217,11 +227,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Validate input
         if (!currentPassword || !newPassword) {
-          return res
-            .status(400)
-            .json({
-              message: "Current password and new password are required",
-            });
+          return res.status(400).json({
+            message: "Current password and new password are required",
+          });
         }
 
         if (newPassword.length < 8) {
@@ -706,12 +714,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         if (project.status !== "needs_revision") {
-          return res
-            .status(400)
-            .json({
-              message:
-                "Only projects with revision requests can be resubmitted. Rejected projects are final.",
-            });
+          return res.status(400).json({
+            message:
+              "Only projects with revision requests can be resubmitted. Rejected projects are final.",
+          });
         }
 
         // Allow faculty to update project details and files when resubmitting
@@ -845,12 +851,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "[/api/projects/all] Forbidden: User is not editor, role is:",
           currentUser.role
         );
-        return res
-          .status(403)
-          .json({
-            message: "Forbidden - Editor role required",
-            userRole: currentUser.role,
-          });
+        return res.status(403).json({
+          message: "Forbidden - Editor role required",
+          userRole: currentUser.role,
+        });
       }
 
       console.log("[/api/projects/all] Fetching all projects...");
@@ -1038,11 +1042,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         if (project.status !== "pending_assignment") {
-          return res
-            .status(400)
-            .json({
-              message: "This project is no longer available for assignment",
-            });
+          return res.status(400).json({
+            message: "This project is no longer available for assignment",
+          });
         }
 
         // Check if editor has already responded to this project
@@ -1147,12 +1149,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         if (editorAssignment) {
           if (editorAssignment.status === "accepted") {
-            return res
-              .status(400)
-              .json({
-                message:
-                  "You have already accepted this assignment and cannot reject it",
-              });
+            return res.status(400).json({
+              message:
+                "You have already accepted this assignment and cannot reject it",
+            });
           }
           if (editorAssignment.status === "rejected") {
             return res
@@ -1570,12 +1570,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         details: `${currentUser.firstName} ${currentUser.lastName} created user ${newUser.email} with role ${newUser.role}`,
       });
 
-      res
-        .status(201)
-        .json({
-          message: "User created successfully",
-          user: { id: newUser.id, email: newUser.email },
-        });
+      res.status(201).json({
+        message: "User created successfully",
+        user: { id: newUser.id, email: newUser.email },
+      });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res
@@ -2012,19 +2010,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               : project.submitterId;
 
           if (submitterId !== userId) {
-            return res
-              .status(403)
-              .json({
-                message:
-                  "You can only view evaluation forms for your own projects",
-              });
+            return res.status(403).json({
+              message:
+                "You can only view evaluation forms for your own projects",
+            });
           }
         } else if (currentUser?.role !== USER_ROLES.EDITOR) {
-          return res
-            .status(403)
-            .json({
-              message: "Only editors and faculty can view evaluation forms",
-            });
+          return res.status(403).json({
+            message: "Only editors and faculty can view evaluation forms",
+          });
         }
 
         const grade = await storage.getGrade(gradeId);
@@ -2329,11 +2323,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             yPos + estimatedHeight / 2 - 5,
             { width: col4Width - 4, align: "center" }
           );
-          doc
-            .font("Helvetica")
-            .text(crit.comment || "", col5 + 2, yPos + 12, {
-              width: col5Width - 4,
-            });
+          doc.font("Helvetica").text(crit.comment || "", col5 + 2, yPos + 12, {
+            width: col5Width - 4,
+          });
 
           yPos += estimatedHeight;
         };
@@ -2566,11 +2558,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         if (!decision || !["accept", "reject", "revision"].includes(decision)) {
-          return res
-            .status(400)
-            .json({
-              message: "Invalid decision. Must be: accept, reject, or revision",
-            });
+          return res.status(400).json({
+            message: "Invalid decision. Must be: accept, reject, or revision",
+          });
         }
 
         const project = await storage.getProject(projectId);
