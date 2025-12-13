@@ -576,7 +576,7 @@ export default function Landing() {
               data-testid="button-get-started"
               className="shadow-lg group"
             >
-              <a href="/Login">
+              <a href="/login">
                 Get Started
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </a>
