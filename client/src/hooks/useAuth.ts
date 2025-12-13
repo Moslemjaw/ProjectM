@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
+import { buildApiUrl } from "@/lib/apiConfig";
 
 export function useAuth() {
   const {
@@ -9,7 +10,7 @@ export function useAuth() {
   } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
     queryFn: async () => {
-      const res = await fetch("/api/auth/user", {
+      const res = await fetch(buildApiUrl("/api/auth/user"), {
         credentials: "include",
       });
 

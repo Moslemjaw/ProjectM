@@ -1,6 +1,4 @@
-import { pgTable, text, integer, timestamp, boolean, jsonb, varchar, serial, real } from "drizzle-orm/pg-core";
 import { z } from "zod";
-import { sql } from "drizzle-orm";
 
 // User roles enum values
 export const USER_ROLES = {
@@ -57,60 +55,6 @@ export const ASSIGNMENT_STATUS = {
 
 export type AssignmentStatus = typeof ASSIGNMENT_STATUS[keyof typeof ASSIGNMENT_STATUS];
 
-// Drizzle table schemas
-export const users = pgTable('users', {
-  id: varchar('id', { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-  email: varchar('email', { length: 255 }).unique().notNull(),
-  password: varchar('password', { length: 255 }).notNull(),
-  firstName: varchar('first_name', { length: 255 }).notNull(),
-  lastName: varchar('last_name', { length: 255 }).notNull(),
-  academicLevel: varchar('academic_level', { length: 50 }),
-  college: varchar('college', { length: 255 }),
-  program: varchar('program', { length: 255 }),
-  specialty: varchar('specialty', { length: 255 }),
-  role: varchar('role', { length: 50 }).notNull().default('faculty'),
-  department: varchar('department', { length: 255 }),
-  profileImageUrl: text('profile_image_url'),
-  designation: varchar('designation', { length: 255 }),
-  organization: varchar('organization', { length: 255 }),
-  discipline: varchar('discipline', { length: 255 }),
-  phone: varchar('phone', { length: 50 }),
-  expertise: jsonb('expertise').$type<string[]>().default(sql`'[]'::jsonb`),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-export const projects = pgTable('projects', {
-  id: varchar('id', { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-  title: varchar('title', { length: 255 }).notNull(),
-  description: text('description').notNull(), // Now used as "Abstract"
-  keywords: jsonb('keywords').$type<string[]>(), // Minimum 5 keywords required
-  budget: real('budget').notNull(),
-  duration: varchar('duration', { length: 100 }), // Project duration (e.g., "12 months", "2 years")
-  submitterId: varchar('submitter_id', { length: 255 }).notNull(),
-  status: varchar('status', { length: 50 }).notNull().default('pending_ai'),
-  aiScore: real('ai_score'),
-  aiFeedback: text('ai_feedback'),
-  alignedCenter: varchar('aligned_center', { length: 255 }),
-  finalScore: real('final_score'),
-  fileUrls: jsonb('file_urls').$type<string[]>(), // Complete Proposal PDFs
-  researchFormUrls: jsonb('research_form_urls').$type<string[]>(), // Research Project Form PDFs
-  editorReviewedAt: timestamp('editor_reviewed_at'),
-  rejectionReason: text('rejection_reason'),
-  revisionComments: text('revision_comments'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-export const reviewerAssignments = pgTable('reviewer_assignments', {
-  id: varchar('id', { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-  projectId: varchar('project_id', { length: 255 }).notNull(),
-  reviewerId: varchar('reviewer_id', { length: 255 }).notNull(),
-  status: varchar('status', { length: 50 }).notNull().default('pending'),
-  assignedAt: timestamp('assigned_at').defaultNow().notNull(),
-  respondedAt: timestamp('responded_at'),
-});
-
 // Grading criteria details
 export interface GradingCriteria {
   backgroundIntroduction: number;
@@ -131,38 +75,6 @@ export interface GradingCriteriaComments {
   feasibilityPlanning: string;
 }
 
-export const grades = pgTable('grades', {
-  id: varchar('id', { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-  projectId: varchar('project_id', { length: 255 }).notNull(),
-  reviewerId: varchar('reviewer_id', { length: 255 }).notNull(),
-  score: real('score').notNull(),
-  criteria: jsonb('criteria').$type<GradingCriteria>(),
-  criteriaComments: jsonb('criteria_comments').$type<GradingCriteriaComments>(),
-  comments: text('comments'),
-  recommendations: text('recommendations'),
-  signature: text('signature'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-export const notifications = pgTable('notifications', {
-  id: varchar('id', { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-  userId: varchar('user_id', { length: 255 }).notNull(),
-  projectId: varchar('project_id', { length: 255 }),
-  title: varchar('title', { length: 255 }).notNull(),
-  message: text('message').notNull(),
-  isRead: boolean('is_read').notNull().default(false),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const activityLogs = pgTable('activity_logs', {
-  id: varchar('id', { length: 255 }).primaryKey().$defaultFn(() => crypto.randomUUID()),
-  projectId: varchar('project_id', { length: 255 }),
-  userId: varchar('user_id', { length: 255 }),
-  action: varchar('action', { length: 50 }).notNull(),
-  details: text('details'),
-  timestamp: timestamp('timestamp').defaultNow().notNull(),
-});
 
 // Zod schemas for validation
 export const insertUserSchema = z.object({
@@ -267,25 +179,67 @@ export const insertActivityLogSchema = z.object({
   details: z.string().optional(),
 });
 
-// Type exports
-export type User = typeof users.$inferSelect;
+// Type exports (MongoDB-based types)
+export type User = z.infer<typeof insertUserSchema> & {
+  id: string;
+  profileImageUrl?: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type LoginCredentials = z.infer<typeof loginSchema>;
 export type UpsertUser = InsertUser;
 
-export type Project = typeof projects.$inferSelect;
+export type Project = z.infer<typeof insertProjectSchema> & {
+  id: string;
+  status: ProjectStatus;
+  aiScore?: number;
+  aiFeedback?: string;
+  finalScore?: number;
+  fileUrls?: string[];
+  researchFormUrls?: string[];
+  editorReviewedAt?: Date;
+  rejectionReason?: string;
+  revisionComments?: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 
-export type ReviewerAssignment = typeof reviewerAssignments.$inferSelect;
+export type ReviewerAssignment = {
+  id: string;
+  projectId: string;
+  reviewerId: string;
+  status: AssignmentStatus;
+  assignedAt: Date;
+  respondedAt?: Date;
+};
+
 export type EditorAssignment = ReviewerAssignment;
 
-export type Grade = typeof grades.$inferSelect;
+export type Grade = z.infer<typeof insertGradeSchema> & {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type InsertGrade = z.infer<typeof insertGradeSchema>;
 
-export type Notification = typeof notifications.$inferSelect;
+export type Notification = z.infer<typeof insertNotificationSchema> & {
+  id: string;
+  isRead: boolean;
+  createdAt: Date;
+};
+
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
-export type ActivityLog = typeof activityLogs.$inferSelect;
+export type ActivityLog = z.infer<typeof insertActivityLogSchema> & {
+  id: string;
+  timestamp: Date;
+};
+
 export type InsertActivityLog = z.infer<typeof insertActivityLogSchema>;
 
 // Project with relations interface
