@@ -568,9 +568,9 @@ export default function Landing() {
               },
               {
                 icon: Zap,
-                title: "AI Evaluation",
+                title: "Fast Evaluation",
                 description:
-                  "Automated AI assessment for relevance, clarity, and institutional alignment",
+                  "Automated assessment for relevance, clarity, and institutional alignment",
                 color: "#fbb216",
                 delay: 0.1,
               },
@@ -695,15 +695,15 @@ export default function Landing() {
               },
               {
                 number: 2,
-                title: "AI-Powered Analysis",
+                title: "Fast Analysis",
                 description:
-                  "Automated evaluation assesses project alignment with university goals, clarity, and feasibility (40% weight)",
+                  "Automated evaluation assesses project alignment with university goals, clarity, and feasibility",
               },
               {
                 number: 3,
                 title: "Expert Peer Review",
                 description:
-                  "Multiple expert reviewers evaluate and grade your project based on comprehensive criteria (60% weight)",
+                  "Multiple expert reviewers evaluate and grade your project based on comprehensive criteria",
               },
               {
                 number: 4,
