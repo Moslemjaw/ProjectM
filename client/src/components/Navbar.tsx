@@ -36,7 +36,7 @@ export function Navbar() {
     enabled: !!user,
   });
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
@@ -61,20 +61,43 @@ export function Navbar() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("/api/auth/logout", {
+      const { buildApiUrl } = await import("@/lib/apiConfig");
+      const apiUrl = buildApiUrl("/api/auth/logout");
+
+      const response = await fetch(apiUrl, {
         method: "POST",
         credentials: "include",
       });
-      
-      if (response.ok) {
-        window.location.href = "/login";
-      } else {
-        throw new Error("Logout failed");
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = "Logout failed";
+
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+
+        throw new Error(errorMessage);
       }
+
+      // Clear the query cache
+      queryClient.clear();
+
+      // Clear user data from cache
+      queryClient.setQueryData(["/api/auth/user"], null);
+
+      // Redirect to login page
+      window.location.href = "/login";
     } catch (error) {
+      console.error("Logout error:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to logout";
       toast({
         title: "Error",
-        description: "Failed to logout",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -103,19 +126,19 @@ export function Navbar() {
           <>
             <Popover>
               <PopoverTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="relative"
                   data-testid="button-notifications"
                 >
                   <Bell className="h-5 w-5" />
                   {unreadCount > 0 && (
-                    <span 
+                    <span
                       className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-[9px] font-semibold"
                       data-testid="badge-notification-count"
                     >
-                      {unreadCount > 9 ? '9+' : unreadCount}
+                      {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
                 </Button>
@@ -153,17 +176,17 @@ export function Navbar() {
                             }
                             if (notification.projectId) {
                               // Navigate based on user role
-                              if (user?.role === 'reviewer') {
-                                setLocation('/assigned');
-                              } else if (user?.role === 'editor') {
-                                setLocation('/editor/review');
+                              if (user?.role === "reviewer") {
+                                setLocation("/assigned");
+                              } else if (user?.role === "editor") {
+                                setLocation("/editor/review");
                               } else {
-                                setLocation('/my-projects');
+                                setLocation("/my-projects");
                               }
                             }
                           }}
                           className={`w-full text-left p-4 hover-elevate active-elevate-2 transition-colors ${
-                            !notification.isRead ? 'bg-accent/50' : ''
+                            !notification.isRead ? "bg-accent/50" : ""
                           }`}
                           data-testid={`notification-item-${notification.id}`}
                         >
@@ -176,7 +199,10 @@ export function Navbar() {
                                 {notification.message}
                               </p>
                               <p className="text-xs text-muted-foreground mt-1">
-                                {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                                {formatDistanceToNow(
+                                  new Date(notification.createdAt),
+                                  { addSuffix: true }
+                                )}
                               </p>
                             </div>
                             {!notification.isRead && (
@@ -194,7 +220,7 @@ export function Navbar() {
             <div className="h-6 w-px bg-border" />
           </>
         )}
-        
+
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

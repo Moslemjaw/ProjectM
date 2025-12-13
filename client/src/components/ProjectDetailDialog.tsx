@@ -35,17 +35,45 @@ import { format } from "date-fns";
 import { buildApiUrl } from "@/lib/apiConfig";
 
 // Helper function to download files from MongoDB
-const downloadFile = async (fileUrl: string, filename: string) => {
+// This will be used inside the component to access toast
+const createDownloadFileHandler = (toast: any) => async (fileUrl: string, filename: string) => {
   try {
     // Ensure fileUrl uses the correct API base URL
+    // File URLs are stored as /api/files/{fileId}
     const fullUrl = fileUrl.startsWith("http") ? fileUrl : buildApiUrl(fileUrl);
+    
+    console.log(`[Download] Attempting to download: ${fullUrl}`);
+    
     const response = await fetch(fullUrl, {
       method: "GET",
       credentials: "include",
     });
 
     if (!response.ok) {
-      throw new Error("Failed to download file");
+      const errorText = await response.text();
+      let errorMessage = "Failed to download file";
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        // If not JSON, check if it's HTML (e.g., 404 page)
+        if (errorText.startsWith("<!DOCTYPE html>")) {
+          errorMessage = "Backend API returned an HTML page instead of the file. This usually means the file endpoint was not found (404) or the backend service is not running correctly.";
+        } else {
+          errorMessage = errorText || errorMessage;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    // Check if response is actually a file (PDF, image, etc.)
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      // If we got JSON instead of a file, it's likely an error
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Server returned an error instead of the file");
     }
 
     const blob = await response.blob();
@@ -57,8 +85,19 @@ const downloadFile = async (fileUrl: string, filename: string) => {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: "File Downloaded",
+      description: `${filename} has been downloaded successfully.`,
+    });
   } catch (error) {
     console.error("Error downloading file:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to download file";
+    toast({
+      title: "Download Failed",
+      description: `Failed to download ${filename}: ${errorMessage}`,
+      variant: "destructive",
+    });
     throw error;
   }
 };
@@ -82,6 +121,9 @@ export function ProjectDetailDialog({
 }: ProjectDetailDialogProps) {
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  // Create download handler with toast access
+  const downloadFile = createDownloadFileHandler(toast);
   const isFaculty = user?.role === "faculty";
   const isEditor = user?.role === "editor";
   const editorGrades = project.grades || [];
