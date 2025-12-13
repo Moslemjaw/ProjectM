@@ -1943,14 +1943,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // EDITOR GRADING
 
-  // Submit grade (Editor)
+  // Submit grade (Reviewer)
   app.post(
     "/api/projects/:id/grade",
     isAuthenticated,
-    async (req: any, res) => {
+    async (req: AuthRequest, res) => {
       try {
-        const userId = req.user!.id;
+        // Log authentication status for debugging
+        if (!req.user) {
+          console.error("[Grade Submission] No user in request");
+          return res
+            .status(401)
+            .json({ message: "Unauthorized: No user session" });
+        }
+
+        const userId = req.user.id;
         const currentUser = await storage.getUser(userId);
+
+        if (!currentUser) {
+          console.error("[Grade Submission] User not found:", userId);
+          return res
+            .status(401)
+            .json({ message: "Unauthorized: User not found" });
+        }
 
         if (currentUser?.role !== USER_ROLES.REVIEWER) {
           return res
