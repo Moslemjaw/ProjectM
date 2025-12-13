@@ -1573,6 +1573,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new user (Editors only)
   app.post("/api/users", isAuthenticated, async (req: AuthRequest, res) => {
     try {
+      // Ensure database connection before proceeding
+      const { connectDB } = await import("./db");
+      const isConnected = await connectDB();
+      if (!isConnected) {
+        console.error("User creation failed: MongoDB not connected");
+        return res.status(503).json({
+          message: "Database unavailable. Please try again later.",
+          error: "MongoDB connection failed",
+        });
+      }
+
       const userId = req.user!.id;
       const currentUser = await storage.getUser(userId);
 
@@ -1613,13 +1624,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user: { id: newUser.id, email: newUser.email },
       });
     } catch (error: any) {
+      console.error("Error creating user:", error);
+
+      // Provide more detailed error information
       if (error instanceof z.ZodError) {
         return res
           .status(400)
           .json({ message: "Invalid user data", errors: error.errors });
       }
-      console.error("Error creating user:", error);
-      res.status(500).json({ message: "Failed to create user" });
+
+      // Check for MongoDB-specific errors
+      if (error instanceof Error) {
+        if (
+          error.message.includes("MongoServerError") ||
+          error.message.includes("MongoNetworkError") ||
+          error.message.includes("connection")
+        ) {
+          console.error("MongoDB error during user creation:", error.message);
+          return res.status(503).json({
+            message: "Database error. Please try again later.",
+            error: "Database connection issue",
+          });
+        }
+
+        // Check for duplicate email error
+        if (
+          error.message.includes("E11000") ||
+          error.message.includes("duplicate key") ||
+          error.message.includes("Email already registered")
+        ) {
+          return res.status(400).json({
+            message: "Email already registered",
+            error: error.message,
+          });
+        }
+
+        // Log the full error for debugging
+        console.error("Full user creation error:", {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+        });
+      }
+
+      res.status(500).json({
+        message: "Failed to create user",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   });
 

@@ -1,7 +1,13 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { insertUserSchema, USER_ROLES, ACADEMIC_LEVELS } from "@shared/schema";
+import {
+  insertUserSchema,
+  USER_ROLES,
+  ACADEMIC_LEVELS,
+  COLLEGES,
+} from "@shared/schema";
+import { Textarea } from "@/components/ui/textarea";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -40,11 +46,16 @@ interface UserCreationDialogProps {
 
 const formSchema = insertUserSchema.extend({
   password: z.string().min(6, "Password must be at least 6 characters"),
+  // College, program, and specialty are already required in insertUserSchema
+  // This extension just ensures password validation
 });
 
 type FormData = z.infer<typeof formSchema>;
 
-export function UserCreationDialog({ open, onOpenChange }: UserCreationDialogProps) {
+export function UserCreationDialog({
+  open,
+  onOpenChange,
+}: UserCreationDialogProps) {
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -56,7 +67,8 @@ export function UserCreationDialog({ open, onOpenChange }: UserCreationDialogPro
       lastName: "",
       role: USER_ROLES.FACULTY,
       academicLevel: undefined,
-      college: "",
+      college: COLLEGES.COMPUTER_SYSTEMS_ENGINEERING,
+      program: "",
       specialty: "",
       department: "",
     },
@@ -64,7 +76,36 @@ export function UserCreationDialog({ open, onOpenChange }: UserCreationDialogPro
 
   const createUserMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      return apiRequest("POST", "/api/users", data);
+      try {
+        const response = await apiRequest("POST", "/api/users", data);
+        return response.json();
+      } catch (error: any) {
+        console.error("User creation API error:", error);
+
+        // Provide more helpful error messages
+        if (
+          error.message?.includes("503") ||
+          error.message?.includes("Database")
+        ) {
+          throw new Error(
+            "Database unavailable. Please check MongoDB connection and try again later."
+          );
+        }
+        if (error.message?.includes("403")) {
+          throw new Error(
+            "You don't have permission to create users. Only editors can create users."
+          );
+        }
+        if (
+          error.message?.includes("400") ||
+          error.message?.includes("Email already")
+        ) {
+          throw new Error(
+            "Email already registered. Please use a different email address."
+          );
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
@@ -77,9 +118,11 @@ export function UserCreationDialog({ open, onOpenChange }: UserCreationDialogPro
       onOpenChange(false);
     },
     onError: (error: any) => {
+      console.error("User creation error:", error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to create user",
+        title: "Failed to Create User",
+        description:
+          error.message || "Failed to create user. Please try again.",
         variant: "destructive",
       });
     },
@@ -95,7 +138,8 @@ export function UserCreationDialog({ open, onOpenChange }: UserCreationDialogPro
         <DialogHeader>
           <DialogTitle>Create New User</DialogTitle>
           <DialogDescription>
-            Create a new user account. All users will receive login credentials via email.
+            Create a new user account. All users will receive login credentials
+            via email.
           </DialogDescription>
         </DialogHeader>
 
@@ -109,7 +153,11 @@ export function UserCreationDialog({ open, onOpenChange }: UserCreationDialogPro
                   <FormItem>
                     <FormLabel>First Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="John" {...field} data-testid="input-first-name" />
+                      <Input
+                        placeholder="John"
+                        {...field}
+                        data-testid="input-first-name"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -123,7 +171,11 @@ export function UserCreationDialog({ open, onOpenChange }: UserCreationDialogPro
                   <FormItem>
                     <FormLabel>Last Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Doe" {...field} data-testid="input-last-name" />
+                      <Input
+                        placeholder="Doe"
+                        {...field}
+                        data-testid="input-last-name"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -138,10 +190,10 @@ export function UserCreationDialog({ open, onOpenChange }: UserCreationDialogPro
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="email" 
-                      placeholder="john.doe@university.edu" 
-                      {...field} 
+                    <Input
+                      type="email"
+                      placeholder="john.doe@university.edu"
+                      {...field}
                       data-testid="input-email"
                     />
                   </FormControl>
@@ -157,15 +209,16 @@ export function UserCreationDialog({ open, onOpenChange }: UserCreationDialogPro
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="password" 
-                      placeholder="••••••••" 
-                      {...field} 
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      {...field}
                       data-testid="input-password"
                     />
                   </FormControl>
                   <FormDescription>
-                    Minimum 6 characters. User can change this after first login.
+                    Minimum 6 characters. User can change this after first
+                    login.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -178,15 +231,22 @@ export function UserCreationDialog({ open, onOpenChange }: UserCreationDialogPro
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger data-testid="select-role">
                         <SelectValue placeholder="Select a role" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value={USER_ROLES.FACULTY}>Faculty</SelectItem>
-                      <SelectItem value={USER_ROLES.REVIEWER}>Reviewer</SelectItem>
+                      <SelectItem value={USER_ROLES.FACULTY}>
+                        Faculty
+                      </SelectItem>
+                      <SelectItem value={USER_ROLES.REVIEWER}>
+                        Reviewer
+                      </SelectItem>
                       <SelectItem value={USER_ROLES.EDITOR}>Editor</SelectItem>
                     </SelectContent>
                   </Select>
@@ -209,15 +269,21 @@ export function UserCreationDialog({ open, onOpenChange }: UserCreationDialogPro
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value={ACADEMIC_LEVELS.LECTURER}>Lecturer</SelectItem>
+                        <SelectItem value={ACADEMIC_LEVELS.LECTURER}>
+                          Lecturer
+                        </SelectItem>
                         <SelectItem value={ACADEMIC_LEVELS.ASSISTANT_PROFESSOR}>
                           Assistant Professor
                         </SelectItem>
                         <SelectItem value={ACADEMIC_LEVELS.ASSOCIATE_PROFESSOR}>
                           Associate Professor
                         </SelectItem>
-                        <SelectItem value={ACADEMIC_LEVELS.PROFESSOR}>Professor</SelectItem>
-                        <SelectItem value={ACADEMIC_LEVELS.DOCTOR}>Doctor</SelectItem>
+                        <SelectItem value={ACADEMIC_LEVELS.PROFESSOR}>
+                          Professor
+                        </SelectItem>
+                        <SelectItem value={ACADEMIC_LEVELS.DOCTOR}>
+                          Doctor
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -227,60 +293,99 @@ export function UserCreationDialog({ open, onOpenChange }: UserCreationDialogPro
 
               <FormField
                 control={form.control}
-                name="department"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Department (Optional)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Computer Science" 
-                        {...field} 
-                        data-testid="input-department"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
                 name="college"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>College (Optional)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Engineering" 
-                        {...field} 
-                        data-testid="input-college"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="specialty"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Specialty (Optional)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Machine Learning" 
-                        {...field} 
-                        data-testid="input-specialty"
-                      />
-                    </FormControl>
+                    <FormLabel>College</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger data-testid="select-college">
+                          <SelectValue placeholder="Select college" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={COLLEGES.BUSINESS_ENTREPRENEURSHIP}>
+                          Business & Entrepreneurship
+                        </SelectItem>
+                        <SelectItem
+                          value={COLLEGES.COMPUTER_SYSTEMS_ENGINEERING}
+                        >
+                          Computer and Systems Engineering
+                        </SelectItem>
+                        <SelectItem value={COLLEGES.ENGINEERING_ENERGY}>
+                          Engineering & Energy
+                        </SelectItem>
+                        <SelectItem value={COLLEGES.HEALTH_MEDICINE}>
+                          Health & Medicine
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="program"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Program</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Computer Science, Electrical Engineering"
+                      {...field}
+                      data-testid="input-program"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="specialty"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Specialty/Research Interest</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter at least 5 interests separated by commas (e.g., Machine Learning, AI, NLP, Computer Vision, Robotics)"
+                      {...field}
+                      data-testid="input-specialty"
+                      rows={3}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Minimum 5 research interests required, separated by commas
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="department"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Department (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Computer Science"
+                      {...field}
+                      data-testid="input-department"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter>
               <Button
@@ -291,8 +396,8 @@ export function UserCreationDialog({ open, onOpenChange }: UserCreationDialogPro
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={createUserMutation.isPending}
                 data-testid="button-create-user"
               >
