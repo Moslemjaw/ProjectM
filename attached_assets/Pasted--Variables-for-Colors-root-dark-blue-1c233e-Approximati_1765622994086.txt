@@ -1,0 +1,119 @@
+/* --- Variables for Colors --- */
+:root {
+    --dark-blue: #1c233e; /* Approximation for the dark navy blue */
+    --teal: #10a88e;      /* Approximation for the teal/turquoise */
+    --orange: #ff9800;    /* Approximation for the orange/amber */
+}
+
+/* --- Basic Container Styling (For Layout) --- */
+.shape-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px; /* Space between the shapes */
+    padding: 20px;
+}
+
+/* --- Shared Shapes Styling --- */
+.crescent, .arc, .rhombus, .squares-block, .triangle {
+    margin: 10px;
+}
+
+/* --- 1. Crescent/Arc Shapes (Dark Blue & Teal) --- */
+.crescent {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden; /* Important for creating the arc effect */
+}
+
+.crescent.dark-blue-left {
+    background-color: var(--dark-blue);
+}
+
+/* Create the empty space inside the 'C' shape */
+.crescent.dark-blue-left::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: white; /* Match the background */
+}
+
+/* Creates the top-right-to-bottom-left arc (image_15e4b5.png) */
+.crescent.dark-blue-arc {
+    width: 60px;
+    height: 100px;
+    background: transparent;
+    border: 20px solid var(--dark-blue);
+    border-radius: 50%;
+    border-top-color: transparent;
+    border-left-color: transparent;
+    transform: rotate(30deg); /* Adjust rotation to match image */
+}
+
+/* Creates the curved teal arc (image_15e4d6.png) */
+.arc.teal-arc {
+    width: 100px;
+    height: 40px;
+    background: transparent;
+    border: 20px solid var(--teal);
+    border-radius: 50px 50px 0 0; /* Creates the curve */
+    border-bottom: none;
+    transform: rotate(15deg);
+}
+
+/* --- 2. Diamond/Rhombus Shapes (Teal & Orange) --- */
+.rhombus {
+    width: 40px;
+    height: 40px;
+    transform: rotate(45deg); /* Key to making the square a diamond */
+    border-radius: 5px; /* Slight rounding on the corners in the image */
+}
+
+.rhombus.teal-rhombus {
+    background-color: var(--teal);
+}
+
+.rhombus.orange-rhombus {
+    background-color: var(--orange);
+}
+
+
+/* --- 3. Block of Two Squares (Dark Blue) --- */
+.squares-block {
+    display: grid;
+    grid-template-areas: 
+        "top-left ."
+        ". bottom-right";
+    width: 100px; /* Container width for spacing */
+    height: 100px; /* Container height for spacing */
+}
+
+.square {
+    width: 50px;
+    height: 50px;
+    background-color: var(--dark-blue);
+}
+
+.square.top-left {
+    grid-area: top-left;
+}
+
+.square.bottom-right {
+    grid-area: bottom-right;
+}
+
+
+/* --- 4. Triangle/Play Button (Teal) --- */
+.triangle {
+    width: 0;
+    height: 0;
+    border-top: 30px solid transparent;
+    border-bottom: 30px solid transparent;
+    border-left: 50px solid var(--teal); /* Creates the triangle pointing right */
+    transform: rotate(0deg); /* Can adjust if needed */
+}

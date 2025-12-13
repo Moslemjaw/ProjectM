@@ -1,0 +1,107 @@
+/* --- Variables for Colors and Opacity --- */
+:root {
+    --grey: #aeb4c0;     /* Approximation for the light grey */
+    --teal: #63c7b2;     /* Approximation for the light teal/mint */
+    --orange: #f9c16b;   /* Approximation for the soft orange */
+    --dark-bar: #1e2129; /* Approximation for the dark vertical bar */
+}
+
+/* --- Basic Container Styling (For Layout) --- */
+.shape-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end; /* Align shapes to the bottom */
+    gap: 50px;
+    padding: 20px;
+    background-color: white; /* Ensure shapes stand out on white background */
+}
+
+/* --- 1. Dark Vertical Bar (image_158e1e.png) --- */
+.vertical-bar {
+    width: 10px;
+    height: 200px;
+    background-color: var(--dark-bar);
+}
+
+/* --- 2. Swoosh and Small Teal Box (image_158e1e.png) --- */
+.swoosh-container {
+    position: relative;
+    width: 100px;
+    height: 200px;
+}
+
+/* The curved grey swoosh/check mark */
+.swoosh {
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    width: 50px;
+    height: 50px;
+    border-right: 15px solid var(--grey);
+    border-bottom: 15px solid var(--grey);
+    border-radius: 0 0 50% 0; /* Creates the curve */
+    transform: rotate(30deg); /* Adjust angle to match image */
+}
+
+/* The small, rounded teal rectangle */
+.small-teal-box {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 30px;
+    height: 20px;
+    background-color: var(--teal);
+    border-radius: 5px;
+}
+
+/* --- 3. Solid Grey Circle (image_158e3e.png) --- */
+.grey-circle {
+    width: 80px;
+    height: 80px;
+    background-color: var(--grey);
+    border-radius: 50%;
+}
+
+/* --- 4. Overlapping Shapes (image_158e7d.png) --- */
+.complex-shape {
+    position: relative;
+    width: 120px;
+    height: 80px;
+}
+
+/* Orange Rounded Square */
+.orange-square {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    background-color: var(--orange);
+    border-radius: 8px;
+    opacity: 0.9; /* Slightly transparent to allow overlapping */
+}
+
+/* Teal Arc/Semicircle */
+.teal-arc {
+    position: absolute;
+    top: 5px;
+    left: 30px;
+    width: 60px;
+    height: 60px;
+    background: transparent;
+    border: 12px solid var(--teal);
+    border-top-color: transparent;
+    border-left-color: transparent;
+    border-radius: 50%;
+    transform: rotate(10deg);
+    opacity: 0.9; /* Slightly transparent to match image */
+}
+
+/* --- 5. Teal Triangle (image_158dfe.png) --- */
+.teal-triangle {
+    width: 0;
+    height: 0;
+    border-top: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+    border-left: 35px solid var(--teal);
+}

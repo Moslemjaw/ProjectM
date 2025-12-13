@@ -1,0 +1,267 @@
+import universityLogo from "@/assets/university-logo.jpg";
+
+const EvaluationForm = () => {
+  return (
+    <div className="min-h-screen bg-gray-200 py-8 px-4">
+      <div className="max-w-[210mm] mx-auto bg-white shadow-2xl">
+        {/* Page 1 */}
+        <div className="relative px-16 pt-12 pb-16 page-break" style={{ minHeight: "297mm" }}>
+          {/* Logo in top right */}
+          <div className="absolute top-8 right-8">
+            <img 
+              src={universityLogo} 
+              alt="Abdullah Al Salem University Logo" 
+              className="h-20 w-auto"
+            />
+          </div>
+
+          {/* Title centered */}
+          <div className="text-center mb-12 pt-8">
+            <h1 className="text-xl font-serif mb-2">
+              Research Project Proposal Evaluation Form
+            </h1>
+            <p className="text-lg mb-2">(External Evaluator)</p>
+            <p className="text-base font-semibold">Total Score 60</p>
+          </div>
+
+          {/* Project Information Table */}
+          <table className="w-full border-2 border-black mb-6 text-sm">
+            <thead>
+              <tr>
+                <th colSpan={2} className="border-2 border-black p-2 text-center font-bold bg-white">
+                  Project Information
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="border-2 border-black p-2 font-normal w-32">Project ID</td>
+                <td className="border-2 border-black p-2"></td>
+              </tr>
+              <tr>
+                <td className="border-2 border-black p-2 font-normal">Title</td>
+                <td className="border-2 border-black p-2"></td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* Main Evaluation Table */}
+          <table className="w-full border-2 border-black text-sm">
+            <thead>
+              <tr>
+                <th colSpan={5} className="border-2 border-black p-2 text-center font-bold bg-white">
+                  External Reviewer Evaluation Report
+                </th>
+              </tr>
+              <tr>
+                <th className="border-2 border-black p-2 w-10 text-center font-bold">S#</th>
+                <th className="border-2 border-black p-2 text-center font-bold">
+                  Criteria for<br />Evaluation
+                </th>
+                <th className="border-2 border-black p-2 w-20 text-center font-bold">
+                  Weightag<br />e
+                </th>
+                <th className="border-2 border-black p-2 w-24 text-center font-bold">
+                  Reviewer&apos;s score
+                </th>
+                <th className="border-2 border-black p-2 text-center font-bold">Comments</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="border-2 border-black p-2 align-top text-center">1</td>
+                <td className="border-2 border-black p-2 align-top">
+                  <div className="font-semibold mb-1">Background/ introduction section.</div>
+                  <ul className="list-none space-y-0.5 text-xs leading-tight">
+                    <li>• Is the introduction of the research area sufficiently explained?</li>
+                    <li>• Are the limitations of existing work clearly highlighted?</li>
+                    <li>• Does the section provide a clear summary of the major components of the research?</li>
+                  </ul>
+                </td>
+                <td className="border-2 border-black p-2 align-top text-center">10</td>
+                <td className="border-2 border-black p-2 align-top"></td>
+                <td className="border-2 border-black p-2 align-top"></td>
+              </tr>
+              <tr>
+                <td className="border-2 border-black p-2 align-top text-center">2</td>
+                <td className="border-2 border-black p-2 align-top">
+                  <div className="font-semibold mb-1">Novelty and Originality</div>
+                  <ul className="list-none space-y-0.5 text-xs leading-tight">
+                    <li>• Is the methodology clearly defined and structured?</li>
+                    <li>• Does the proposed activity suggest creative and original concepts?</li>
+                    <li>• Are the steps and tasks in the methodology logical and well-detailed?</li>
+                  </ul>
+                </td>
+                <td className="border-2 border-black p-2 align-top text-center">10</td>
+                <td className="border-2 border-black p-2 align-top"></td>
+                <td className="border-2 border-black p-2 align-top"></td>
+              </tr>
+              <tr>
+                <td className="border-2 border-black p-2 align-top text-center">3</td>
+                <td className="border-2 border-black p-2 align-top">
+                  <div className="font-semibold mb-1">Clear and Realistic Objectives</div>
+                  <ul className="list-none space-y-0.5 text-xs leading-tight">
+                    <li>• Are the research objectives clearly stated?</li>
+                    <li>• Are the objectives realistic and aligned with the project duration?</li>
+                  </ul>
+                </td>
+                <td className="border-2 border-black p-2 align-top text-center">10</td>
+                <td className="border-2 border-black p-2 align-top"></td>
+                <td className="border-2 border-black p-2 align-top"></td>
+              </tr>
+              <tr>
+                <td className="border-2 border-black p-2 align-top text-center">4</td>
+                <td className="border-2 border-black p-2 align-top">
+                  <div className="font-semibold mb-1">Dissemination of Research Results.</div>
+                  <ul className="list-none space-y-0.5 text-xs leading-tight">
+                    <li>• Are the expected outputs</li>
+                  </ul>
+                </td>
+                <td className="border-2 border-black p-2 align-top text-center">10</td>
+                <td className="border-2 border-black p-2 align-top"></td>
+                <td className="border-2 border-black p-2 align-top"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Page 2 */}
+        <div className="relative px-16 pt-12 pb-16 page-break" style={{ minHeight: "297mm" }}>
+          {/* Logo in top right */}
+          <div className="absolute top-8 right-8">
+            <img 
+              src={universityLogo} 
+              alt="Abdullah Al Salem University Logo" 
+              className="h-20 w-auto"
+            />
+          </div>
+
+          {/* Continue table from page 1 */}
+          <div className="pt-16">
+            <table className="w-full border-2 border-black text-sm mb-6">
+              <tbody>
+                <tr>
+                  <td className="border-2 border-black p-2 align-top w-10"></td>
+                  <td className="border-2 border-black p-2 align-top">
+                    <div className="text-xs leading-tight space-y-0.5">
+                      <div>(e.g., journal/conference publications) clearly identified?</div>
+                      <div>• Is the number of proposed publications reasonable?</div>
+                      <div>• Are the target venues for publication of acceptable quality</div>
+                    </div>
+                  </td>
+                  <td className="border-2 border-black p-2 align-top text-center w-20"></td>
+                  <td className="border-2 border-black p-2 align-top w-24"></td>
+                  <td className="border-2 border-black p-2 align-top"></td>
+                </tr>
+                <tr>
+                  <td className="border-2 border-black p-2 align-top text-center">5</td>
+                  <td className="border-2 border-black p-2 align-top">
+                    <div className="font-semibold mb-1">Significance of the research</div>
+                    <ul className="list-none space-y-0.5 text-xs leading-tight">
+                      <li>• Does the research address a significant problem?</li>
+                      <li>• Does it have the potential for academic, social, or economic impact?</li>
+                      <li>• Is the research aligned with international standards?</li>
+                    </ul>
+                  </td>
+                  <td className="border-2 border-black p-2 align-top text-center">10</td>
+                  <td className="border-2 border-black p-2 align-top"></td>
+                  <td className="border-2 border-black p-2 align-top"></td>
+                </tr>
+                <tr>
+                  <td className="border-2 border-black p-2 align-top text-center">6</td>
+                  <td className="border-2 border-black p-2 align-top">
+                    <div className="font-semibold mb-1">Feasibility and planning</div>
+                    <ul className="list-none space-y-0.5 text-xs leading-tight">
+                      <li>• Is the timeline realistic and well-structured?</li>
+                      <li>• Does the proposal demonstrate the ability to complete the project successfully?</li>
+                      <li>• Is the budget appropriate and justified?</li>
+                    </ul>
+                  </td>
+                  <td className="border-2 border-black p-2 align-top text-center">10</td>
+                  <td className="border-2 border-black p-2 align-top"></td>
+                  <td className="border-2 border-black p-2 align-top"></td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* Overall Score Table */}
+            <table className="w-full border-2 border-black text-sm">
+              <thead>
+                <tr>
+                  <th className="border-2 border-black p-3 text-left font-bold">
+                    Overall Evaluator Score (out of 60)
+                  </th>
+                  <th className="border-2 border-black p-3 text-center font-bold w-32">Total</th>
+                  <th className="border-2 border-black p-3 text-center font-bold w-32">Obtained</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border-2 border-black p-3"></td>
+                  <td className="border-2 border-black p-3 text-center">60</td>
+                  <td className="border-2 border-black p-3"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Page 3 */}
+        <div className="relative px-16 pt-12 pb-16" style={{ minHeight: "297mm" }}>
+          {/* Logo in top right */}
+          <div className="absolute top-8 right-8">
+            <img 
+              src={universityLogo} 
+              alt="Abdullah Al Salem University Logo" 
+              className="h-20 w-auto"
+            />
+          </div>
+
+          <div className="pt-20">
+            <table className="w-full border-2 border-black text-sm mx-auto" style={{ maxWidth: "90%" }}>
+              <thead>
+                <tr>
+                  <th colSpan={2} className="border-2 border-black p-2 text-center font-bold bg-white">
+                    Reviewer Information (Only visible to the University Administration)
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border-2 border-black p-2 font-normal w-40">Name</td>
+                  <td className="border-2 border-black p-2"></td>
+                </tr>
+                <tr>
+                  <td className="border-2 border-black p-2 font-normal">Designation</td>
+                  <td className="border-2 border-black p-2"></td>
+                </tr>
+                <tr>
+                  <td className="border-2 border-black p-2 font-normal">Organization</td>
+                  <td className="border-2 border-black p-2"></td>
+                </tr>
+                <tr>
+                  <td className="border-2 border-black p-2 font-normal">Discipline</td>
+                  <td className="border-2 border-black p-2"></td>
+                </tr>
+                <tr>
+                  <td className="border-2 border-black p-2 font-normal">Phone</td>
+                  <td className="border-2 border-black p-2"></td>
+                </tr>
+                <tr>
+                  <td className="border-2 border-black p-2 font-normal">Email</td>
+                  <td className="border-2 border-black p-2"></td>
+                </tr>
+                <tr>
+                  <td className="border-2 border-black p-2 font-normal">Signature</td>
+                  <td className="border-2 border-black p-2 h-24"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default EvaluationForm;

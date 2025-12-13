@@ -1,0 +1,134 @@
+Got it — you’re building a **Project Management System** on **Replit**, designed for **faculty members/doctors** at your university to submit research or project proposals that are reviewed and graded by editors (with partial AI grading).
+
+Here’s a **perfect prompt** you can give to Replit (or use as your base spec) to start building it properly 👇
+
+---
+
+### 🧠 Replit Project Prompt: “Research Project Management System”
+
+**Goal:**
+Build a web-based Project Management System that allows **faculty members/doctors** to submit research or project proposals. The projects are then reviewed and graded by **editors** and partially by an **AI evaluation module**.
+
+---
+
+### 🧩 System Overview:
+
+#### 1. **Roles**
+
+* **Faculty/Doctor (Submitter):**
+
+  * Can log in and submit a new project proposal with a title, description, department, budget (in KD), and attached files.
+  * Can view submission status, grading results (AI + editor grading), and assigned editors.
+
+* **Editor:**
+
+  * Can view assigned projects.
+  * Reviews and grades each project (60% weight).
+  * Adds comments and recommendations.
+
+* **Process Lead (Admin):**
+
+  * Has full access to logs, analytics, and AI evaluations.
+  * Can assign/reassign projects to editors.
+  * Can view grading breakdowns, averages, and audit trails.
+
+* **AI Evaluation Module (Internal):**
+
+  * Automatically evaluates each submission for:
+
+    * Relevance to university mission and vision.
+    * Alignment with research center goals.
+    * Completeness and clarity.
+  * Produces an internal score (40% weight).
+
+---
+
+### ⚙️ **Grading Logic**
+
+1. **AI Grading (40%)**
+
+   * Automatically triggered upon submission.
+   * Uses a local API endpoint `/api/ai-grade` later i will be proveded it's gonna be a deepseek api with knowledge base to evaluate and return a score between 0–40. 
+
+2. **Editor Grading (60%)**
+
+   * Each assigned editor provides a score between 0–60.
+
+3. **Editor Assignment Rules:**
+
+   * **Budget ≤ 20 KD:** assign to **2 editors** → average their grades.
+   * **Budget > 20 KD:** assign to **3 editors** → average their grades.
+
+4. **Final Grade = (AI 40%) + (Average of Editor(s) 60%)**
+
+5. **Once graded:**
+
+   * The system notifies the project owner (faculty/doctor) with the total score and editor feedback.
+
+---
+
+### 🗂️ **Data Models (MongoDB or PostgreSQL)**
+
+**User:**
+
+* id, name, email, role (faculty, editor, process_lead), department
+
+**Project:**
+
+* id, title, description, budget, submitter_id, status, ai_score, editor_scores[], final_score, assigned_editors[], createdAt, updatedAt
+
+**Logs:**
+
+* id, project_id, user_id, action (submit, assign, grade, reassign), timestamp
+
+---
+
+### 🖥️ **Tech Stack**
+
+* **Frontend:** React + TailwindCSS
+* **Backend:** Node.js (Express.js)
+* **Database:** MongoDB (Mongoose)
+* **AI Evaluation (Mock initially):** Node route that simulates grading with a random value or a simple keyword analysis function.
+* **Authentication:** JWT-based auth (faculty, editor, process lead).
+
+---
+
+### 🧩 **Core Features**
+
+1. **Project Submission Form**
+
+   * Faculty fills out and uploads proposal.
+   * AI instantly evaluates and logs score.
+
+2. **Automatic Editor Assignment**
+
+   * Based on budget rules (2 or 3 editors).
+   * Sends notification (email or dashboard alert).
+
+3. **Grading Dashboard**
+
+   * Editors view pending projects and submit grades.
+   * System calculates final average automatically.
+
+4. **Admin Dashboard**
+
+   * Full visibility: project list, logs, AI results, assignments.
+   * Ability to override or manually reassign editors.
+
+5. **Notifications**
+
+   * Faculty notified after grading completion.
+   * Editors notified when new projects are assigned.
+
+---
+
+### 🚀 **Stretch Goals**
+
+* Integration with **ChatGPT API** for AI grading enhancement.
+* Exportable reports for Process Lead (CSV/PDF).
+* Department-level analytics dashboard.
+
+---
+
+Would you like me to make this prompt ready in **Replit-compatible format** (for example, “Generate a MERN app with the following structure…” so you can paste it directly into Replit)?
+I can also include **folder structure** and **API routes** scaffolding in that version.
