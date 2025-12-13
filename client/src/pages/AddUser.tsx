@@ -385,24 +385,6 @@ export default function AddUser() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="department"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Department (Optional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Software Engineering"
-                        {...field}
-                        value={field.value || ""}
-                        data-testid="input-department"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               <div className="flex items-center gap-3 pt-4">
                 <Button

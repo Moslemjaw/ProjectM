@@ -467,7 +467,7 @@ export default function Landing() {
 
       <section className="container mx-auto px-4 py-12 md:py-20 relative">
         <motion.div
-          className="max-w-3xl mx-auto text-center space-y-8"
+          className="max-w-3xl mx-auto text-center space-y-8 overflow-visible"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -489,17 +489,20 @@ export default function Landing() {
 
           <motion.h2
             variants={itemVariants}
-            className="text-3xl md:text-5xl font-bold tracking-tight"
+            className="text-3xl md:text-5xl font-bold tracking-tight leading-tight"
+            style={{ overflow: "visible" }}
           >
             Research Project
             <span
-              className="block mt-2"
+              className="block mt-2 leading-tight"
               style={{
                 background:
                   "linear-gradient(135deg, #0e1c43 0%, #60c2ac 50%, #fbb216 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
+                overflow: "visible",
+                paddingBottom: "0.1em",
               }}
             >
               Management System
